@@ -13,13 +13,61 @@ let desktopSettings = {
   bgImage: ""
 };
 
+let fileSystemState = {
+  desktop: [
+    // Desktop items:
+    { id: 'futv-1', name: 'FUTV Channel Stream.exe', type: 'file', content: '<iframe width=&quot;560&quot; height=&quot;315&quot; style=&quot;margin:0 auto;&quot; src=&quot;https://www.youtube.com/embed/jLILJi1xCwo?si=pa3RREcmUPncuAam&amp;autoplay=true&quot; title=&quot;YouTube video player&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&quot; referrerpolicy=&quot;strict-origin-when-cross-origin&quot; allowfullscreen></iframe>' }
+  ],
+  folders: {
+    "C://": [
+      { id: 'c-docs', name: "Documents", type: "folder" },
+      { id: 'c-desktop', name: "Desktop", type: "folder" },
+      { id: 'c-test', name: "test", type: "folder", contents: [
+          { id: 'c-test-nested', name: "nested", type: "folder", contents: [] }
+      ]}
+    ],
+    "A://": [
+      { id: 'a-floppy', name: "FloppyFiles", type: "folder" },
+      { id: 'a-cheeky', name: "cheeky.txt", type: "file", content: "Cheeky content – enjoy your floppy!" }
+    ],
+    "D://": [
+      { id: 'd-cd', name: "CD Drive", type: "folder" },
+      { id: 'd-awesome', name: "awesome.mp3", type: "file", content: "This is some awesome music!" }
+    ],
+    "C://Documents": [] // Will be populated via the media endpoint.
+  }
+};
+
 /* =====================
 File Explorer Window Type
 This returns the HTML for a file explorer window.
 ====================== */
 function getExplorerWindowContent(currentPath = 'C://') {
+  currentPath = normalizePath(currentPath);
+  let items = [];
+  if (currentPath === "desktop") {
+    items = fileSystemState.desktop;
+  } else {
+    items = fileSystemState.folders[currentPath] || [];
+  }
+  let listHtml = '<ul class="pl-5">';
+  items.forEach(item => {
+    let icon = item.type === 'folder' ? 'image/folder.svg' : 'image/file.svg';
+    if (item.icon_url) { icon = item.icon_url; }
+    if (item.type === "folder") {
+      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" onclick="openExplorer('${(currentPath === 'desktop' ? 'desktop' : currentPath) + '/' + item.name}')">
+        <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}
+      </li>`;
+    } else {
+      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-file-id="${item.id}" onclick="openFileById('${item.id}', event); event.stopPropagation();">
+        <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name} ${item.description ? '(' + item.description + ')' : ''}
+      </li>`;
+    }
+  });
+  listHtml += '</ul>';
+  
   return `
-    <div id="file-explorer">
+  <div class="file-explorer-window" data-current-path="${currentPath}">
       <div class="flex">
         <!-- Left Sidebar -->
         <div id="file-sidebar" class="w-1/4 border-r p-2">
@@ -37,9 +85,9 @@ function getExplorerWindowContent(currentPath = 'C://') {
         </div>
         <!-- Main Content -->
         <div id="file-main" class="w-3/4 p-2">
-          <div id="breadcrumbs" class="mb-2">Path: ${currentPath}</div>
+          <div id="breadcrumbs" class="mb-2">Path: ${getBreadcrumbs(currentPath)}</div>
           <div id="files-area">
-            ${currentPath === 'C://Documents' ? 'Loading files...' : '<p>This folder is empty.</p>'}
+            <div id="files-area">${listHtml}</div>
           </div>
         </div>
       </div>
@@ -47,15 +95,71 @@ function getExplorerWindowContent(currentPath = 'C://') {
   `;
 }
 
+function initializeAppState() {
+  if (!localStorage.getItem('appState')) {
+    // No saved state; initialize using the default base objects.
+    const initialState = {
+      fileSystemState: fileSystemState,
+      windowStates: windowStates,
+      desktopIconsState: desktopIconsState,
+      desktopSettings: desktopSettings
+    };
+    localStorage.setItem('appState', JSON.stringify(initialState));
+  } else {
+    // Load state from localStorage
+    const storedState = JSON.parse(localStorage.getItem('appState'));
+    fileSystemState = storedState.fileSystemState;
+    windowStates = storedState.windowStates;
+    desktopIconsState = storedState.desktopIconsState;
+    desktopSettings = storedState.desktopSettings;
+  }
+}
+
 // Opens an explorer window for the given path.
 function openExplorer(path) {
-  createWindow(path, getExplorerWindowContent(path), false, null, false, false, { type: 'integer', width: 600, height: 400 }, "Explorer");
-  if (path === 'C://Documents') {
-    setTimeout(fetchDocuments, 0);
+  path = normalizePath(path);
+  let explorerWindow = document.getElementById('explorer-window');
+  const newContent = getExplorerWindowContent(path);
+  if (explorerWindow) {
+    explorerWindow.querySelector('.file-explorer-window').outerHTML = newContent;
+    explorerWindow.querySelector('.file-explorer-window').setAttribute('data-current-path', path);
+    setTimeout(setupFolderDrop, 100);
+  } else {
+    explorerWindow = createWindow(
+      path,
+      newContent,
+      false,
+      'explorer-window',
+      false,
+      false,
+      { type: 'integer', width: 600, height: 400 },
+      "Explorer"
+    );
   }
-  // Setup drop events for folders after rendering.
-  setTimeout(setupFolderDrop, 100);
+  if (path === "C://Documents") {
+    fetchDocuments();
+  }
 }
+
+// Looks up a file by its ID (from desktop or current folder) and opens it.
+function openFileById(fileId, e) {
+  let file = null;
+  let currentPath = "desktop";
+  const explorerElem = e.target.closest('.file-explorer-window');
+  if (explorerElem) {
+    currentPath = explorerElem.getAttribute('data-current-path');
+    file = (fileSystemState.folders[currentPath] || []).find(it => it.id === fileId);
+  } else {
+    file = fileSystemState.desktop.find(it => it.id === fileId);
+  }
+  if (!file) {
+    const errorMessage = ("File not found.");
+    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
+    return;
+  }
+  openFile(file, e);
+}
+
 
 /* =====================
     Context Menu on Right-Click
@@ -73,15 +177,14 @@ document.addEventListener('click', function () {
 
 function showContextMenu(e, target) {
   const menu = document.getElementById('context-menu');
+  menu.style.zIndex = highestZ + 100; // Ensure it appears above all windows.
   let html = '';
   if (target) {
-    // Right-click on an item: enable edit and delete only.
     html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="editItemName(event, this)">Edit Name</div>`;
     html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="deleteItem(event, this)">Delete</div>`;
     html += `<div class="px-4 py-2 text-gray-400">New Folder</div>`;
     html += `<div class="px-4 py-2 text-gray-400">New File</div>`;
   } else {
-    // Right-click on empty space: allow creating new folder or file.
     html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="createNewFolder(event)">New Folder</div>`;
     html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="createNewFile(event)">New File</div>`;
   }
@@ -98,27 +201,183 @@ function hideContextMenu() {
 
 function editItemName(e, menuItem) {
   e.stopPropagation();
-  alert('Edit item name functionality to be implemented.');
   hideContextMenu();
+  // Find the target item element using the data-item-id attribute.
+  const targetElem = e.target.closest('[data-item-id]');
+  if (!targetElem) {
+    const errorMessage = ("No item selected.");
+    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default")
+    return;
+  }
+  const itemId = targetElem.getAttribute('data-item-id');
+  // Determine context: if inside an explorer window, use its current path; otherwise, assume desktop.
+  let contextPath = "desktop";
+  const explorerElem = targetElem.closest('.file-explorer-window');
+  if (explorerElem) {
+    contextPath = explorerElem.getAttribute('data-current-path');
+  }
+  let itemsArray = (contextPath === "desktop") ? fileSystemState.desktop : (fileSystemState.folders[contextPath] || []);
+  let item = itemsArray.find(it => it.id === itemId);
+  if (!item) {
+    const errorMessage = ("Item not found in file system.");
+    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default")
+    return;
+  }
+  let newName = prompt("Edit name:", item.name);
+  if (newName && newName !== item.name) {
+    item.name = newName;
+    // Refresh the UI: re-render the explorer window or desktop icons.
+    if (contextPath === "desktop") {
+      renderDesktopIcons();
+    } else {
+      const explorerWindow = document.getElementById('explorer-window');
+      if (explorerWindow) {
+        explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(contextPath);
+        setupFolderDrop();
+      }
+    }
+    saveState();
+  }
 }
 
 function deleteItem(e, menuItem) {
   e.stopPropagation();
-  alert('Delete item functionality to be implemented.');
   hideContextMenu();
+  const targetElem = e.target.closest('[data-item-id]');
+  if (!targetElem) {
+    const errorMessage = ("No item selected.");
+    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default")
+    return;
+  }
+  const itemId = targetElem.getAttribute('data-item-id');
+  let contextPath = "desktop";
+  const explorerElem = targetElem.closest('.file-explorer-window');
+  if (explorerElem) {
+    contextPath = explorerElem.getAttribute('data-current-path');
+  }
+  let itemsArray = (contextPath === "desktop") ? fileSystemState.desktop : (fileSystemState.folders[contextPath] || []);
+  const index = itemsArray.findIndex(it => it.id === itemId);
+  if (index === -1) {
+    const errorMessage = ("Item not found.");
+    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default")
+    return;
+  }
+  if (!confirm("Are you sure you want to delete this item?")) {
+    return;
+  }
+  itemsArray.splice(index, 1);
+  if (contextPath === "desktop") {
+    renderDesktopIcons();
+  } else {
+    const explorerWindow = document.getElementById('explorer-window');
+    if (explorerWindow) {
+      explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(contextPath);
+      setupFolderDrop();
+    }
+  }
+  saveState();
 }
 
 function createNewFolder(e) {
   e.stopPropagation();
-  alert('Create new folder functionality to be implemented.');
   hideContextMenu();
+  // Determine context: if an explorer window exists, use its current path; else, desktop.
+  let contextPath = "desktop";
+  const explorerElem = document.querySelector('.file-explorer-window');
+  if (explorerElem) {
+    contextPath = explorerElem.getAttribute('data-current-path');
+  }
+  let folderName = prompt("Enter new folder name:", "New Folder");
+  if (!folderName) return;
+  
+  if (contextPath === "desktop") {
+    // Create a new desktop icon for the folder.
+    const desktopIcons = document.getElementById('desktop-icons');
+    const iconId = "icon-" + Date.now();
+    const newIcon = document.createElement('div');
+    newIcon.id = iconId;
+    newIcon.className = 'flex flex-col items-center cursor-pointer draggable-icon';
+    newIcon.innerHTML = `<img src="image/folder.svg" alt="${folderName}" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16" />
+      <span class="text-xs text-black max-w-20 text-center">${folderName}</span>`;
+    newIcon.setAttribute('data-window-title', folderName);
+    newIcon.setAttribute('data-window-id', iconId);
+    newIcon.setAttribute('data-window-type', 'Explorer');
+    newIcon.setAttribute('data-window-dimensions', '{"type": "integer", "height": 400, "width": 600}');
+    // For desktop folders, you may store the folder path relative to desktop.
+    newIcon.setAttribute('data-folder-path', folderName);
+    desktopIcons.appendChild(newIcon);
+    makeIconDraggable(newIcon);
+    fileSystemState.desktop.push({ name: folderName, type: "folder" });
+    saveState();
+  } else {
+    // Context is a drive/folder in the explorer.
+    if (!fileSystemState.folders[contextPath]) {
+      fileSystemState.folders[contextPath] = [];
+    }
+    fileSystemState.folders[contextPath].push({ name: folderName, type: "folder", contents: [] });
+    // Refresh the explorer window.
+    const explorerWindow = document.getElementById('explorer-window');
+    if (explorerWindow) {
+      explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(contextPath);
+      setupFolderDrop();
+    }
+    saveState();
+  }
 }
 
+// Creates a new file with default markdown content_type and opens it for editing.
 function createNewFile(e) {
   e.stopPropagation();
-  // Open a new blank markdown editor.
-  createWindow("New File.md", '', false, null, false, false, { type: 'integer', width: 400, height: 300 }, 'editor');
   hideContextMenu();
+  let contextPath = "desktop";
+  const explorerElem = document.querySelector('.file-explorer-window');
+  if (explorerElem) {
+    contextPath = explorerElem.getAttribute('data-current-path');
+  }
+  contextPath = normalizePath(contextPath);
+  let fileName = prompt("Enter new file name:", "New File.md");
+  if (!fileName) return;
+  
+  const newFile = {
+    id: "file-" + Date.now(),
+    name: fileName,
+    type: "file",
+    content: "",
+    content_type: "markdown",
+    icon_url: "image/doc.svg",
+    description: ""
+  };
+  
+  if (contextPath === "desktop") {
+    fileSystemState.desktop.push(newFile);
+    const desktopIcons = document.getElementById('desktop-icons');
+    const iconId = "icon-" + newFile.id;
+    const newIcon = document.createElement('div');
+    newIcon.id = iconId;
+    newIcon.className = 'flex flex-col items-center cursor-pointer draggable-icon';
+    newIcon.innerHTML = `<img src="${newFile.icon_url}" alt="${fileName}" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16" />
+      <span class="text-xs text-black max-w-20 text-center">${fileName}</span>`;
+    newIcon.setAttribute('data-window-title', fileName);
+    newIcon.setAttribute('data-window-id', newFile.id);
+    newIcon.setAttribute('data-window-type', 'editor');
+    newIcon.setAttribute('data-window-dimensions', '{"type": "integer", "height": 300, "width": 400}');
+    newIcon.setAttribute('data-item-id', newFile.id);
+    desktopIcons.appendChild(newIcon);
+    makeIconDraggable(newIcon);
+    saveState();
+  } else {
+    if (!fileSystemState.folders[contextPath]) {
+      fileSystemState.folders[contextPath] = [];
+    }
+    fileSystemState.folders[contextPath].push(newFile);
+    const explorerWindow = document.getElementById('explorer-window');
+    if (explorerWindow) {
+      explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(contextPath);
+      setupFolderDrop();
+    }
+    saveState();
+  }
+  openFile(newFile, e);
 }
 
 function openAboutWindow() {
@@ -151,7 +410,7 @@ function showSplash() {
   <div class="flex flex-col items-center justify-center h-full">
     <img id="splash-image" src="./image/startup.jpeg" alt="Startup" class="mb-4">
     <h1 class="text-4xl text-white font-bold mb-2">FUTV - Information Access</h1>
-    <div class="mx-auto w-96 text-sm pl-3 mb-2 text-[rgb(0,255,0)]">[{[ I have prefilled credentials for you. —Your friendly neighborhood hackerman, _N30_phreak_ ]}]</div>
+    <div class="mx-auto w-96 text-sm pl-3 mb-2 text-[rgb(0,255,0)]"><em>I have prefilled credentials for you.<br> —Your friendly neighborhood hackerman, _N30_phreak_</em></div>
     <form id="splash-form" class="bg-gray-300 border border-gray-500 p-4 w-96">
       <div class="mb-2">
         <label class="block text-sm">Username</label>
@@ -201,11 +460,26 @@ function showSplash() {
   });
 }
 
+function saveState() {
+  localStorage.setItem('fileSystemState', JSON.stringify(fileSystemState));
+}
+
 // Save states to localStorage
 function saveState() {
-  localStorage.setItem('windowStates', JSON.stringify(windowStates));
-  localStorage.setItem('desktopIconsState', JSON.stringify(desktopIconsState));
-  localStorage.setItem('desktopSettings', JSON.stringify(desktopSettings));
+  const appState = {
+    fileSystemState: fileSystemState,
+    windowStates: windowStates,
+    desktopIconsState: desktopIconsState,
+    desktopSettings: desktopSettings
+  };
+  localStorage.setItem('appState', JSON.stringify(appState));
+}
+
+function restoreFileSystemState() {
+  const saved = localStorage.getItem('fileSystemState');
+  if (saved) {
+    fileSystemState = JSON.parse(saved);
+  }
 }
 
 // Restore states on load
@@ -337,7 +611,7 @@ function createWindow(title, content, isNav = false, windowId = null, initialMin
   if (!windowId) {
     windowId = 'window-' + Date.now();
   }
-  if (windowType === 'Files') {
+  if (windowType === 'Explorer' && title === 'C://Documents') {
     contentToPrint = getFilesWindowContent();
   }
   if (windowType === 'Settings') {
@@ -514,6 +788,53 @@ function closeWindow(windowId) {
   saveState();
 }
 
+function normalizePath(path) {
+  if (path === "desktop") return path;
+  // Leave drive roots like "C://" untouched.
+  if (/^[A-Z]:\/\/$/.test(path)) return path;
+  // Remove any trailing slashes.
+  return path.replace(/\/+$/, "");
+}
+
+// Generates clickable breadcrumbs separated by forward slashes.
+function getBreadcrumbs(path) {
+  path = normalizePath(path);
+  if (path === "desktop") {
+    return `<span class="cursor-pointer" onclick="openExplorer('desktop')">desktop</span>`;
+  }
+  // Handle drive paths such as "C://Documents"
+  let driveMatch = path.match(/^([A-Z]:\/\/)(.*)/);
+  if (driveMatch) {
+    let drivePart = driveMatch[1]; // e.g., "C://"
+    let rest = driveMatch[2]; // e.g., "Documents/Folder"
+    let breadcrumbHtml = `<span class="cursor-pointer hover:underline" onclick="openExplorer('${drivePart}')">${drivePart}</span>`;
+    if (rest) {
+      let parts = rest.split('/').filter(p => p !== '');
+      let cumulativePath = drivePart;
+      parts.forEach((part, index) => {
+        cumulativePath += part;
+        breadcrumbHtml += " / " + `<span class="cursor-pointer hover:underline" onclick="openExplorer('${cumulativePath}')">${part}</span>`;
+        if (index < parts.length - 1) {
+          cumulativePath += "/";
+        }
+      });
+    }
+    return breadcrumbHtml;
+  }
+  // Fallback for other path formats
+  let parts = path.split('/').filter(p => p !== '');
+  let breadcrumbHtml = '';
+  let cumulativePath = "";
+  parts.forEach((part, index) => {
+    cumulativePath += part + (index < parts.length - 1 ? "/" : "");
+    breadcrumbHtml += `<span class="cursor-pointer hover:underline" onclick="openExplorer('${cumulativePath}')">${part}</span>`;
+    if (index < parts.length - 1) {
+      breadcrumbHtml += " / ";
+    }
+  });
+  return breadcrumbHtml;
+}
+
 // Make a window draggable via its title bar.
 function makeDraggable(el) {
   const header = el.querySelector('.cursor-move');
@@ -595,13 +916,14 @@ function makeIconDraggable(icon) {
     document.querySelectorAll('.draggable-icon').forEach(i => i.classList.remove('bg-gray-50'));
     icon.classList.add('bg-gray-50');
   });
-  icon.addEventListener('dblclick', function () {
-    const title = icon.getAttribute('data-window-title');
+  icon.addEventListener('dblclick', function (e) {
     const id = icon.getAttribute('data-window-id');
-    const windowType = icon.getAttribute('data-window-type');
-    const dimensions = JSON.parse(icon.getAttribute('data-window-dimensions'));
-    const content = icon.getAttribute('data-window-content') || ('Content for ' + id);
-    openWindow(id, content, dimensions, windowType);
+    let item = fileSystemState.desktop.find(it => it.id === id);
+    if (item && item.type === 'folder') {
+      openExplorer("desktop/" + item.name + "/");
+    } else if (item) {
+      openFileById(item.id, e);
+    }
   });
 }
 
@@ -647,16 +969,16 @@ function getFilesWindowContent() {
 // Basic Markdown converter (supports headers, bold, italic, and line breaks)
 function convertMarkdownToHTML(markdown) {
   // Convert headers
-  markdown = markdown.replace(/^###### (.*$)/gim, '<h6style="font-weight:bold;font-size:18px;">$1</h6>');
-  markdown = markdown.replace(/^##### (.*$)/gim, '<h5style="font-weight:bold;font-size:20px;">$1</h5>');
+  markdown = markdown.replace(/^###### (.*$)/gim, '<h6 style="font-weight:bold;font-size:18px;">$1</h6>');
+  markdown = markdown.replace(/^##### (.*$)/gim, '<h5 style="font-weight:bold;font-size:20px;">$1</h5>');
   markdown = markdown.replace(/^#### (.*$)/gim, '<h4 style="font-weight:bold;font-size:22px;">$1</h4>');
   markdown = markdown.replace(/^### (.*$)/gim, '<h3 style="font-weight:bold;font-size:24px;">$1</h3>');
   markdown = markdown.replace(/^## (.*$)/gim, '<h2 style="font-weight:bold;font-size:28px;">$1</h2>');
   markdown = markdown.replace(/^# (.*$)/gim, '<h1 style="font-weight:bold;font-size:32px;">$1</h1>');
   // Convert bold text
-  markdown = markdown.replace(/\*\*(.*?)\*\*/gim, '<strongstyle="font-weight:bold;font-size:12px;">$1</strong>');
+  markdown = markdown.replace(/\*\*(.*?)\*\*/gim, '<strong style="font-weight:bold;font-size:12px;">$1</strong>');
   // Convert italic text
-  markdown = markdown.replace(/\*(.*?)\*/gim, '<emstyle="font-style:italic;font-size:12px;">$1</em>');
+  markdown = markdown.replace(/\*(.*?)\*/gim, '<em style="font-style:italic;font-size:12px;">$1</em>');
   // Convert line breaks
   markdown = markdown.replace(/\n$/gim, '<br />');
   return markdown.trim();
@@ -678,75 +1000,159 @@ function fetchDocuments() {
   fetch('./api/media.json')
     .then(response => response.json())
     .then(data => {
-      const files = data.data.files; // New structure
-      let listHtml = '<ul class="pl-5">';
-      files.forEach(file => {
-        let fileType = 'default';
-        const ft = file.file_type.toLowerCase();
-        if (['png', 'jpg', 'jpeg', 'gif'].includes(ft)) {
-          fileType = 'image';
-        } else if (['mp4', 'webm'].includes(ft)) {
-          fileType = 'video';
-        } else if (['mp3', 'wav'].includes(ft)) {
-          fileType = 'audio';
-        } else if (ft === 'html') {
-          fileType = 'html';
-        } else if (ft === 'md') {
-          fileType = 'markdown';
-        } else if (ft === 'txt') {
-          fileType = 'text';
+      const files = data.data.files;
+      const fileItems = files.map(file => {
+        let content_type = file.file_type.toLowerCase();
+        let icon_url = 'image/file.svg';
+        if (['png', 'jpg', 'jpeg', 'gif'].includes(content_type)) {
+          icon_url = 'image/image.svg';
+        } else if (['mp4', 'webm'].includes(content_type)) {
+          icon_url = 'image/video.svg';
+        } else if (['mp3', 'wav'].includes(content_type)) {
+          icon_url = 'image/audio.svg';
+        } else if (content_type === 'html') {
+          icon_url = 'image/html.svg';
+        } else if (content_type === 'md') {
+          icon_url = 'image/doc.svg';
+        } else if (content_type === 'txt') {
+          icon_url = 'image/doc.svg';
         }
-        listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-file-id="${file.id}" data-file-type="${fileType}" onclick="openFile('${file.url}', '${fileType}', event); event.stopPropagation();">
-      ${file.url} ${file.description ? '(' + file.description + ')' : ''}
-    </li>`;
+        return {
+          id: file.id,
+          name: file.url,
+          type: "file",
+          content: "",
+          content_type: content_type,
+          icon_url: icon_url,
+          description: file.description || ""
+        };
+      });
+
+      fileSystemState.folders["C://Documents"] = fileItems;
+
+      let listHtml = '<ul class="pl-5">';
+      fileItems.forEach(file => {
+        listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-file-id="${file.id}" data-file-type="${file.content_type}" onclick="openFileById('${file.id}', event); event.stopPropagation();">
+          <img src="${file.icon_url}" class="inline h-4 w-4 mr-2"> ${file.name} ${file.description ? '(' + file.description + ')' : ''}
+        </li>`;
       });
       listHtml += '</ul>';
+
       const container = document.getElementById('files-area');
-      if (container) { container.innerHTML = listHtml; }
-      // Setup drag events for new file items
+      if (container) {
+        container.innerHTML = listHtml;
+      }
       makeFileItemsDraggable();
     })
     .catch(error => {
       console.error("Error fetching media list:", error);
       const container = document.getElementById('files-area');
-      if (container) { container.innerHTML = '<p>Error loading files.</p>'; }
+      if (container) {
+        container.innerHTML = '<p>Error loading files.</p>';
+      }
     });
 }
 
+
 // Open a file from the Documents explorer.
-function openFile(fileName, fileType, e) {
+function openFile(file, e) {
   let content = "";
-  if (fileType === 'image') {
-    content = `<img src="./media/${fileName}" alt="${fileName}" class="mx-auto max-h-full max-w-full" style="padding:10px;">`;
-  } else if (fileType === 'video') {
+  let windowType = 'default';
+  if (file.content_type === 'image' || file.content_type === 'jpg' || file.content_type === 'jpeg' || file.content_type === 'png' || file.content_type === 'webp' || file.content_type === 'avif' || file.content_type === 'gif') {
+    content = `<img src="./media/${file.name}" alt="${file.name}" class="mx-auto max-h-full max-w-full" style="padding:10px;">`;
+  } else if (file.content_type === 'video' || file.content_type === 'mov' || file.content_type === 'mp4' || file.content_type === 'webm' || file.content_type === 'avi') {
     content = `<video controls class="mx-auto max-h-full max-w-full" style="padding:10px;">
-            <source src="./media/${fileName}" type="video/mp4">
+            <source src="./media/${file.name}" type="video/mp4">
             Your browser does not support the video tag.
           </video>`;
-  } else if (fileType === 'audio') {
+  } else if (file.content_type === 'audio' || file.content_type === 'mp3' || file.content_type === 'ogg' || file.content_type === 'wav') {
     content = `<audio controls class="mx-auto" style="min-width:320px; min-height:60px; padding:10px;">
-            <source src="./media/${fileName}" type="audio/mpeg">
+            <source src="./media/${file.name}" type="audio/mpeg">
             Your browser does not support the audio element.
           </audio>`;
-  } else if (fileType === 'html') {
-    content = `<p style="padding:10px;">Loading HTML file...</p>`;
-  } else if (fileType === 'text' || fileType === 'markdown') {
-    // For both text and markdown, show a placeholder.
+  } else if (file.content_type === 'html') {
+    content = file.content ? file.content : `<p style="padding:10px;">Loading HTML file...</p>`;
+    if (!file.content) {
+      fetch(`./media/${file.name}`)
+        .then(response => response.text())
+        .then(html => {
+          const win = document.getElementById(file.id);
+          const contentDiv = win ? win.querySelector('.p-2') : null;
+          if (contentDiv) {
+            contentDiv.innerHTML = html;
+          }
+          file.content = html;
+          saveState();
+        })
+        .catch(error => {
+          console.error("Error loading HTML file:", error);
+          const win = document.getElementById(file.id);
+          const contentDiv = win ? win.querySelector('.p-2') : null;
+          if (contentDiv) {
+            contentDiv.innerHTML = '<p>Error loading HTML file.</p>';
+          }
+        });
+    }
+  } else if (file.content_type === 'text' || file.content_type === 'txt') {
     content = `<div id="file-content" style="padding:10px;">Loading file...</div>`;
+    fetch(`./media/${file.name}`)
+      .then(response => response.text())
+      .then(text => {
+        const win = document.getElementById(file.id);
+        const contentDiv = win ? win.querySelector('.p-2') : null;
+        if (contentDiv) {
+          contentDiv.innerHTML = `<div id="text-editor" contenteditable="true" style="padding:10px; overflow:auto;">${text}</div>`;
+          const textEditor = document.getElementById('text-editor');
+          textEditor.addEventListener('input', function () {
+            updateContent(file.id, this.innerHTML);
+          });
+        }
+        file.content = text;
+        saveState();
+      })
+      .catch(error => {
+        console.error("Error loading text file:", error);
+        const win = document.getElementById(file.id);
+        const contentDiv = win ? win.querySelector('.p-2') : null;
+        if (contentDiv) {
+          contentDiv.innerHTML = '<p>Error loading file.</p>';
+        }
+      });
+    windowType = 'editor';
+  } else if (file.content_type === 'markdown' || file.content_type === 'md') {
+    content = `<div id="file-content" style="padding:10px;">Loading file...</div>`;
+    fetch(`./media/${file.name}`)
+      .then(response => response.text())
+      .then(text => {
+        const win = document.getElementById(file.id);
+        const contentDiv = win ? win.querySelector('.p-2') : null;
+        if (contentDiv) {
+          contentDiv.innerHTML = `<div id="markdown-editor" contenteditable="true" class="overflow-auto" style="padding:10px; min-height:150px;">${convertMarkdownToHTML(text)}</div>`;
+          document.getElementById('markdown-editor').addEventListener('input', function () {
+            updateContent(file.id, this.innerHTML);
+          });
+        }
+        file.content = text;
+        saveState();
+      })
+      .catch(error => {
+        console.error("Error loading markdown file:", error);
+        const win = document.getElementById(file.id);
+        const contentDiv = win ? win.querySelector('.p-2') : null;
+        if (contentDiv) {
+          contentDiv.innerHTML = '<p>Error loading file.</p>';
+        }
+      });
+    windowType = 'editor';
   } else {
-    content = `<p style="padding:10px;">Content of ${fileName}</p>`;
+    content = `<p style="padding:10px;">Content of ${file.name}</p>`;
   }
   let parentWin = null;
   if (e) {
     parentWin = e.target.closest('#windows-container > div');
   }
-  let windowType = 'default';
-  if (typeof fileType !== 'undefined') {
-    windowType = (fileType === 'text' || fileType === 'markdown') ? 'editor' : 'default';
-  }
-  let win = createWindow(fileName, content, false, null, false, false, { type: 'integer', width: 100, height: 100 }, windowType, parentWin);
-
-  if (fileType === 'image') {
+  let win = createWindow(file.name, content, false, file.id, false, false, { type: 'integer', width: 100, height: 100 }, windowType, parentWin);
+  if (file.content_type === 'image') {
     let img = win.querySelector('img');
     if (img) {
       img.onload = function () {
@@ -758,7 +1164,7 @@ function openFile(fileName, fileType, e) {
         saveState();
       }
     }
-  } else if (fileType === 'video') {
+  } else if (file.content_type === 'video') {
     let video = win.querySelector('video');
     if (video) {
       video.onloadedmetadata = function () {
@@ -770,67 +1176,9 @@ function openFile(fileName, fileType, e) {
         saveState();
       }
     }
-  } else if (fileType === 'html') {
-    fetch(`./media/${fileName}`)
-      .then(response => response.text())
-      .then(html => {
-        const contentDiv = win.querySelector('.p-2');
-        if (contentDiv) {
-          contentDiv.innerHTML = html;
-        }
-        windowStates[win.id].content = html;
-        saveState();
-      })
-      .catch(error => {
-        console.error("Error loading HTML file:", error);
-        const contentDiv = win.querySelector('.p-2');
-        if (contentDiv) {
-          contentDiv.innerHTML = '<p>Error loading HTML file.</p>';
-        }
-      });
-  } else if (fileType === 'text') {
-    fetch(`./media/${fileName}`)
-      .then(response => response.text())
-      .then(text => {
-        const contentDiv = win.querySelector('.p-2');
-        // For plain text, use a contenteditable div.
-        contentDiv.innerHTML = `<div id="text-editor" contenteditable="true" style="padding:10px; overflow:auto;">${text}</div>`;
-        const textEditor = document.getElementById('text-editor');
-        textEditor.addEventListener('input', function () {
-          updateContent(win.id, this.innerHTML);
-        });
-        windowStates[win.id].content = text;
-        saveState();
-      })
-      .catch(error => {
-        console.error("Error loading text file:", error);
-        const contentDiv = win.querySelector('.p-2');
-        if (contentDiv) {
-          contentDiv.innerHTML = '<p>Error loading file.</p>';
-        }
-      });
-  } else if (fileType === 'markdown') {
-    fetch(`./media/${fileName}`)
-      .then(response => response.text())
-      .then(text => {
-        const contentDiv = win.querySelector('.p-2');
-        // For Markdown, use a single contenteditable div that shows the rendered HTML.
-        contentDiv.innerHTML = `<div id="markdown-editor" contenteditable="true" class="overflow-auto" style="padding:10px; min-height:150px;">${convertMarkdownToHTML(text)}</div>`;
-        document.getElementById('markdown-editor').addEventListener('input', function () {
-          updateContent(win.id, this.innerHTML);
-        });
-        windowStates[win.id].content = text;
-        saveState();
-      })
-      .catch(error => {
-        console.error("Error loading markdown file:", error);
-        const contentDiv = win.querySelector('.p-2');
-        if (contentDiv) {
-          contentDiv.innerHTML = '<p>Error loading file.</p>';
-        }
-      });
   }
 }
+
 
 // Settings window content: change desktop background and clock settings.
 function getSettingsContent() {
@@ -981,6 +1329,7 @@ window.addEventListener('load', function () {
   if (!localStorage.getItem("splashSeen")) {
     showSplash();
   }
+  initializeAppState();
   // Continue with the normal initialization:
   restoreWindows();
   restoreDesktopIcons();
@@ -1024,8 +1373,31 @@ function toggleFullScreen(winId) {
   saveState();
 }
 
+function renderDesktopIcons() {
+  const desktopIconsContainer = document.getElementById('desktop-icons');
+  desktopIconsContainer.innerHTML = "";
+  fileSystemState.desktop.forEach(item => {
+    const iconElem = document.createElement('div');
+    iconElem.id = "icon-" + item.id;
+    iconElem.className = 'flex flex-col items-center cursor-pointer draggable-icon';
+    const iconSrc = (item.type === 'folder') ? 'image/folder.svg' : 'image/file.svg';
+    iconElem.innerHTML = `<img src="${iconSrc}" alt="${item.name}" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16" />
+      <span class="text-xs text-black max-w-20 text-center">${item.name}</span>`;
+    iconElem.setAttribute('data-window-title', item.name);
+    iconElem.setAttribute('data-window-id', item.id);
+    iconElem.setAttribute('data-window-type', 'Explorer');
+    iconElem.setAttribute('data-window-dimensions', '{"type": "integer", "height": 400, "width": 600}');
+    iconElem.setAttribute('data-item-id', item.id);
+    desktopIconsContainer.appendChild(iconElem);
+    makeIconDraggable(iconElem);
+  });
+}
+
 // Toggle Start Menu visibility.
 function toggleStartMenu() {
   const menu = document.getElementById('start-menu');
   menu.classList.toggle('hidden');
 }
+
+restoreFileSystemState();
+renderDesktopIcons();

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,44 +7,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="./tailwind.config.js"></script>
   <style>
-    *:focus {
-      outline: none;
-    }
+    *:focus { outline: none; }
   </style>
 </head>
-
 <body id="desktop" class="bg-defaultBackground h-screen w-screen relative overflow-hidden font-mono">
   <audio id="splash-audio" src="./audio/startup.mp3"></audio>
-  <!-- Desktop Icons -->
-  <div id="desktop-icons" class="absolute top-4 left-4 space-y-4 z-30">
-    <!-- Computer Icon -->
-    <!-- <div id="icon-computer" class="flex flex-col items-center cursor-pointer draggable-icon"
-      data-window-title="My Computer" data-window-id="desktopIcon1" data-window-type="default"
-      data-window-dimensions='{"type": "default"}'>
-      <img src="./image/computer.svg" alt="My Computer" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16" />
-      <span class="text-xs text-black max-w-20 text-center">My Computer</span>
-    </div> -->
-    <!-- FUTV Icon -->
-    <div id="icon-futv" class="flex flex-col items-center cursor-pointer draggable-icon"
-      data-window-title="FUTV Player.exe" data-window-id="FUTV_player.exe" data-window-type="default"
-      data-window-dimensions='{"type": "integer", "height": 365, "width": 610}'
-      data-window-content='<iframe width=&quot;560&quot; height=&quot;315&quot; style=&quot;margin:0 auto;&quot; src=&quot;https://www.youtube.com/embed/jLILJi1xCwo?si=pa3RREcmUPncuAam&amp;autoplay=true&quot; title=&quot;YouTube video player&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&quot; referrerpolicy=&quot;strict-origin-when-cross-origin&quot; allowfullscreen></iframe>'>
-      <img src="./image/futv.png" alt="FUTV" class="mb-1 shadow-lg max-h-16 max-w-16" />
-      <span class="text-xs text-black max-w-20 text-center">FUTV Player.exe</span>
-    </div>
-    <div id="faq-desktop-icon" class="flex flex-col items-center cursor-pointer draggable-icon"
-      ondblclick="openFile('FAQ.md', 'markdown', event); event.stopPropagation();">
-      <img src="./image/document.svg" alt="Documents icon" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16" />
-      <span class="text-xs text-black max-w-20 text-center">Frequently Asked Questions.doc</span>
-    </div>
-    <div id="mail-desktop-icon" class="flex flex-col items-center cursor-pointer draggable-icon"
-      data-window-title="fuMail.exe" data-window-id="fuMail.exe" data-window-type="default"
-      data-window-dimensions='{"type": "integer", "height": 365, "width": 610}' data-window-content="Add stuff here.">
-      <img src="./image/envelope.svg" alt="My Computer" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16" />
-      <span class="text-xs text-black max-w-20 text-center">fuMail.exe</span>
-    </div>
-    <!-- Add additional desktop icons as needed -->
-  </div>
+  
+  <!-- Desktop Icons (rendered dynamically by JS) -->
+  <div id="desktop-icons" class="absolute top-4 left-4 z-30"></div>
 
   <!-- Container for Windows (modals) -->
   <div id="windows-container" class="absolute w-full h-[calc(100vh-40px)] overflow-auto"></div>
@@ -54,46 +23,42 @@
   <div id="context-menu" class="absolute bg-white border border-gray-500 shadow-lg hidden z-50"></div>
 
   <!-- Taskbar -->
-  <div class="fixed bottom-0 left-0 right-0 bg-gray-300 border-t border-gray-500 h-10 flex items-center px-2"
-    style="z-index:1000;">
+  <div class="fixed bottom-0 left-0 right-0 bg-gray-300 border-t border-gray-500 h-10 flex items-center px-2" style="z-index:1000;">
     <div class="relative">
-      <button id="start-button" class="bg-gray-200 border border-gray-500 px-3 py-1 mr-2"
-        onclick="toggleStartMenu()">Start</button>
+      <button id="start-button" class="bg-gray-200 border border-gray-500 px-3 py-1 mr-2" onclick="toggleStartMenu()">Start</button>
       <!-- Start Menu -->
       <div id="start-menu" class="absolute bottom-[2.3rem] -left-2 bg-gray-200 border border-gray-500 w-72 hidden">
         <ul>
-          <!-- Home minimizes all full-screen windows and de-selects taskbar highlights -->
+          <!-- Home minimizes all windows -->
           <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="minimizeAllWindows()">
-            <img src="image/desktop.svg" class="h-6 w-6 inline mr-2">
+            <img src="image/desktop.svg" class="h-6 w-6 inline mr-2" alt="Home">
             Home
           </li>
-          <!-- Rename Files to Documents -->
-          <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer"
-            onclick="openExplorer('C://Documents')">
-            <img src="image/documents.svg" class="h-6 w-6 inline mr-2">
+          <!-- Documents -->
+          <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="openExplorer('C://Documents')">
+            <img src="image/documents.svg" class="h-6 w-6 inline mr-2" alt="Documents">
             Documents
           </li>
           <!-- About this computer -->
           <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="openAboutWindow()">
-            <img src="image/info.svg" class="h-6 w-6 inline mr-2">
-            About this computer
+            <img src="image/info.svg" class="h-6 w-6 inline mr-2" alt="About">
+            About this Computer
           </li>
-          <!-- Settings: opens a window to change desktop background, clock settings, etc. -->
-          <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer"
-            onclick="openNav('Settings', '', { type: 'integer', width: 600, height: 400 }, 'Settings')">
-            <img src="image/gears.svg" class="h-6 w-6 inline mr-2">
+          <!-- System Settings -->
+          <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="openNav('Settings', '', { type: 'integer', width: 600, height: 400 }, 'Settings')">
+            <img src="image/gears.svg" class="h-6 w-6 inline mr-2" alt="Settings">
             System Settings
           </li>
           <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="restart()">
-            <img src="image/power.svg" class="h-6 w-6 inline mr-2">
+            <img src="image/power.svg" class="h-6 w-6 inline mr-2" alt="Restart">
             Restart
           </li>
         </ul>
       </div>
     </div>
-    <!-- Taskbar Tabs: now with horizontal scrolling and no-wrap -->
+    <!-- Taskbar Tabs -->
     <div id="window-tabs" class="flex-1 flex space-x-2 overflow-x-auto whitespace-nowrap"></div>
-    <!-- Right side: Media control (if any) and Clock -->
+    <!-- Media Control & Clock -->
     <div class="flex items-center ml-auto space-x-2 bg-gray-200 p-1 border border-gray-400">
       <div id="media-control" class="cursor-pointer" onclick="toggleMediaPlayback()"></div>
       <div id="clock"></div>
@@ -102,5 +67,4 @@
 
   <script src="index.js"></script>
 </body>
-
 </html>
