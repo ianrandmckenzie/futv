@@ -1,0 +1,11 @@
+{
+  "data": {
+    "playlists": [
+      { "id": "87612",
+        "description": "Lorem ipsum dolor sit amet",
+        "playlist_id": "guyf3428r7g249ifug",
+        "custom_parameters": "autoplay=true&loop=false"
+      }
+    ]
+  }
+}

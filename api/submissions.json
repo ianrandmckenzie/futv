@@ -1,0 +1,13 @@
+{
+  "data": {
+    "submissions": [
+      {
+        "id": "123", "email": "someone@example.com", "textarea": "A long-form text submission",
+        "files": [
+          { "id": "789", "description": "pitch deck", "file_type": "pdf", "url": "my-submission.pdf" },
+          { "id": "1199", "description": "sample episode", "file_type": "mp4", "url": "my-submission-final-final4-v2.mp4" }
+        ]
+      }
+    ]
+  }
+}
