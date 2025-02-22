@@ -20,16 +20,21 @@
     <div id="icon-computer" class="flex flex-col items-center cursor-pointer draggable-icon"
       data-window-title="My Computer" data-window-id="desktopIcon1" data-window-type="default"
       data-window-dimensions='{"type": "default"}'>
-      <img src="./image/computer.svg" alt="My Computer" class="mb-1 shadow-lg max-w-20" />
-      <span class="text-xs">My Computer</span>
+      <img src="./image/computer.svg" alt="My Computer" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16" />
+      <span class="text-xs text-black max-w-20 text-center">My Computer</span>
     </div>
     <!-- FUTV Icon -->
     <div id="icon-futv" class="flex flex-col items-center cursor-pointer draggable-icon"
       data-window-title="FUTV Player.exe" data-window-id="FUTV_player.exe" data-window-type="default"
       data-window-dimensions='{"type": "integer", "height": 365, "width": 610}'
       data-window-content='<iframe width=&quot;560&quot; height=&quot;315&quot; style=&quot;margin:0 auto;&quot; src=&quot;https://www.youtube.com/embed/jLILJi1xCwo?si=pa3RREcmUPncuAam&amp;autoplay=true&quot; title=&quot;YouTube video player&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&quot; referrerpolicy=&quot;strict-origin-when-cross-origin&quot; allowfullscreen></iframe>'>
-      <img src="./image/futv.png" alt="FUTV" class="mb-1 shadow-lg max-w-20" />
-      <span class="text-xs">FUTV Player.exe</span>
+      <img src="./image/futv.png" alt="FUTV" class="mb-1 shadow-lg max-h-16 max-w-16" />
+      <span class="text-xs text-black max-w-20 text-center">FUTV Player.exe</span>
+    </div>
+    <div id="faq-desktop-icon" class="flex flex-col items-center cursor-pointer draggable-icon"
+      ondblclick="openFile('FAQ.md', 'markdown', event); event.stopPropagation();">
+      <img src="./image/document.svg" alt="My Computer" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16" />
+      <span class="text-xs text-black max-w-20 text-center">Frequently Asked Questions.doc</span>
     </div>
     <!-- Add additional desktop icons as needed -->
   </div>
@@ -79,7 +84,7 @@
     // Global desktop settings (background, clock seconds)
     let desktopSettings = {
       clockSeconds: false,
-      bgColor: "#008081", // Default color now set to #008081
+      bgColor: "#20b1b1", // Default color now set to #20b1b1
       bgImage: ""
     };
 
@@ -815,7 +820,7 @@
       desktopIconsState = {};
       desktopSettings = {
         clockSeconds: false,
-        bgColor: "#008081",
+        bgColor: "#20b1b1",
         bgImage: ""
       };
       window.location.reload();

@@ -6,7 +6,7 @@ tailwind.config = {
       backgroundImage: {},
       colors: {
         handlebarBlue: '#02009F',
-        defaultBackground: '#008081'
+        defaultBackground: '#20b1b1'
       },
       // Create your own at: https://javisperez.github.io/tailwindcolorshades
       fontFamily: {
