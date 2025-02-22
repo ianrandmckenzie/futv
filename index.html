@@ -50,10 +50,10 @@
           <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="minimizeFullScreenWindows()">Home</li>
           <!-- Settings: opens a window to change desktop background, clock settings, etc. -->
           <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer"
-            onclick="openNav('Settings', { type: 'default' }, 'Settings')">Settings</li>
+            onclick="openNav('Settings', '', { type: 'default' }, 'Settings')">Settings</li>
           <!-- Rename Files to Documents -->
           <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer"
-            onclick="openNav('Documents', { type: 'integer', width: 600, height: 400 }, 'Files')">Documents</li>
+            onclick="openNav('Documents', '', { type: 'integer', width: 600, height: 400 }, 'Files')">Documents</li>
           <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="restart()">Restart</li>
         </ul>
       </div>
@@ -283,14 +283,15 @@
      */
 
     function createWindow(title, content, isNav = false, windowId = null, initialMinimized = false, restore = false, dimensions = { type: 'default' }, windowType = 'default', parentWin = null) {
+      let contentToPrint = content;
       if (!windowId) {
         windowId = 'window-' + Date.now();
       }
       if (windowType === 'Files') {
-        content = getFilesWindowContent();
+        contentToPrint = getFilesWindowContent();
       }
       if (windowType === 'Settings') {
-        content = getSettingsContent();
+        contentToPrint = getSettingsContent();
       }
       let styleDimensions = "";
       if (dimensions.type === 'integer') {
@@ -319,7 +320,7 @@
       </div>
     </div>
     <div class="p-2 ${windowType === 'editor' ? 'h-full w-full' : ''} overflow-auto" ${windowType === 'default' ? 'contenteditable="true" oninput="updateContent(\'' + windowId + '\', this.innerHTML)"' : ''}>
-      ${content}
+      ${contentToPrint}
     </div>
   </div>`;
       win.addEventListener('click', function () {
@@ -345,7 +346,7 @@
       windowStates[windowId] = {
         id: windowId,
         title: title,
-        content: content,
+        content: contentToPrint,
         isNav: isNav,
         isMinimized: initialMinimized,
         dimensions: dimensions,
@@ -588,7 +589,7 @@
         if (existingWindow) { bringToFront(existingWindow); return; }
         else { delete navWindows[title]; }
       }
-      createWindow(title, content === '' ? 'Content for ' + title : content, true, null, false, false, dimensions, windowType);
+      createWindow(title, content, true, null, false, false, dimensions, windowType);
     }
 
     // Open a window (used for desktop icons).
