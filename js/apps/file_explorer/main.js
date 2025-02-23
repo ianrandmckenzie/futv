@@ -105,13 +105,13 @@ function getExplorerWindowContent(currentPath = 'C://') {
         <!-- Left Sidebar -->
         <div id="file-sidebar" class="w-1/4 border-r p-2">
           <ul>
-            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" ondblclick="openExplorer('C://')">
+            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" onclick="openExplorer('C://')">
               <img src="image/drive_c.svg" class="inline h-4 w-4 mr-2"> C://
             </li>
-            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" ondblclick="openExplorer('A://')">
+            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" onclick="openExplorer('A://')">
               <img src="image/floppy.svg" class="inline h-4 w-4 mr-2"> A://
             </li>
-            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" ondblclick="openExplorer('D://')">
+            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" onclick="openExplorer('D://')">
               <img src="image/cd.svg" class="inline h-4 w-4 mr-2"> D://
             </li>
           </ul>
