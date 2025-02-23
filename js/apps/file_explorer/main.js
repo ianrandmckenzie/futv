@@ -302,14 +302,16 @@ function fetchDocuments() {
 
 // Looks up a file by its ID (from desktop or current folder) and opens it.
 function openFile(incoming_file, e) {
-  const fs = getFileSystemState();
   let file;
   const explorerElem = e.target.closest('.file-explorer-window');
+  let currentPath;
   if (explorerElem) {
-    const currentPath = explorerElem.getAttribute('data-current-path');
-    const itemsObj = getItemsForPath(currentPath);
-    file = Object.values(itemsObj).find(it => it.id === incoming_file);
+    currentPath = explorerElem.getAttribute('data-current-path');
+  } else if (e.srcElement.classList.contains('desktop-folder-icon')) {
+    currentPath = 'C://Desktop';
   }
+  const itemsObj = getItemsForPath(currentPath);
+  file = Object.values(itemsObj).find(it => it.id === incoming_file);
 
   if (!file || typeof file === 'string') {
     const file_name = `File ${typeof file === 'string' ? `"${file}"` : ''}`;
@@ -522,6 +524,7 @@ function hideContextMenu() {
   const menu = document.getElementById('context-menu');
   menu.classList.add('hidden');
 }
+
 function editItemName(e, menuItem) {
   e.stopPropagation();
   hideContextMenu();

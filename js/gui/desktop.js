@@ -22,20 +22,6 @@ function makeIconDraggable(icon) {
     document.querySelectorAll('.draggable-icon').forEach(i => i.classList.remove('bg-gray-50'));
     icon.classList.add('bg-gray-50');
   });
-  icon.addEventListener('dblclick', function (e) {
-    const id = icon.getAttribute('data-window-id');
-    let fs = getFileSystemState();
-    // Retrieve the Desktop folder from the "C://" drive as an object.
-    let desktopFolder = fs.folders['C://'] ? fs.folders['C://']['Desktop'] : null;
-    if (!desktopFolder) return;
-    // desktopFolder.contents is now an object keyed by each item's id.
-    let item = desktopFolder.contents[id];
-    if (item && item.type === 'folder') {
-      openExplorer(item.id);
-    } else if (item) {
-      openFile(item.id, e);
-    }
-  });
 }
 
 function updateDesktopSettings() {
@@ -60,16 +46,15 @@ function renderDesktopIcons() {
   Object.values(desktopFolder.contents).forEach(item => {
     const iconElem = document.createElement('div');
     iconElem.id = "icon-" + item.id;
-    iconElem.className = 'flex flex-col items-center cursor-pointer draggable-icon';
+    iconElem.className = 'flex flex-col items-center cursor-pointer draggable-icon desktop-folder-icon';
     const iconSrc = (item.type === 'folder') ? 'image/folder.svg' : 'image/file.svg';
-    iconElem.innerHTML = `<img src="${iconSrc}" alt="${item.name}" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16" />
-      <span class="text-xs text-black max-w-20 text-center">${item.name}</span>`;
-    iconElem.setAttribute('data-window-title', item.name);
-    iconElem.setAttribute('data-window-id', item.id);
-    iconElem.setAttribute('data-window-type', 'Explorer');
-    iconElem.setAttribute('data-window-dimensions', '{"type": "integer", "height": 400, "width": 600}');
-    iconElem.setAttribute('data-item-id', item.id);
-    iconElem.setAttribute('data-window-content', item.content);
+    iconElem.innerHTML = `<img src="${iconSrc}" alt="${item.name}" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16 desktop-folder-icon" />
+      <span class="text-xs text-black max-w-20 text-center desktop-folder-icon">${item.name}</span>`;
+    if (item.type === 'file' || item.type === 'ugc-file') {
+      iconElem.setAttribute('ondblclick', `openFile('${item.id}', event)`);
+    } else if (item.type === 'file') {
+      iconElem.setAttribute('ondblclick', `openExplorer('${item.id}')`);
+    }
     desktopIconsContainer.appendChild(iconElem);
     makeIconDraggable(iconElem);
   });
