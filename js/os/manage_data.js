@@ -1,22 +1,22 @@
 let fileSystemState = {
   folders: {
-    "C://": [
-      { id: 'c-docs', name: "Documents", type: "folder", contents: [] },
-      { id: 'c-desktop', name: "Desktop", type: "folder", contents: [
-        { id: 'futv-1', name: 'FUTV Channel Stream.exe', type: 'file', content: '<iframe width=&quot;560&quot; height=&quot;315&quot; style=&quot;margin:0 auto;&quot; src=&quot;https://www.youtube.com/embed/jLILJi1xCwo?si=pa3RREcmUPncuAam&amp;autoplay=true&quot; title=&quot;YouTube video player&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&quot; referrerpolicy=&quot;strict-origin-when-cross-origin&quot; allowfullscreen></iframe>' }
-      ] },
-      { id: 'c-test', name: "test", type: "folder", contents: [
-        { id: 'c-test-nested', name: "nested", type: "folder", contents: [] }
-      ]}
-    ],
-    "A://": [
-      { id: 'a-floppy', name: "FloppyFiles", type: "folder" },
-      { id: 'a-cheeky', name: "cheeky.txt", type: "file", content: "Cheeky content – enjoy your floppy!" }
-    ],
-    "D://": [
-      { id: 'd-cd', name: "CD Drive", type: "folder" },
-      { id: 'd-awesome', name: "awesome.mp3", type: "file", content: "This is some awesome music!" }
-    ]
+    "C://": {
+      "Documents": { id: 'Documents', name: 'Documents', type: 'folder', fullPath: 'C://Documents', contents: {}},
+      "Desktop": { id: 'Desktop', name: 'Desktop', type: 'folder', fullPath: 'C://Desktop', contents: {
+          "futv-1": { id: 'futv-1', name: 'FUTV Channel Stream.exe', type: 'file', fullPath: 'C://Desktop/futv-1', content_type: 'html', contents: '<iframe width="560" height="315" style="margin:0 auto;" src="https://www.youtube.com/embed/WaDScZTJUTs?autoplay=true" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>' }
+        }
+      }
+    },
+    "A://": {
+      "folder-34862398": { id: 'folder-34862398', name: 'example folder', type: 'folder', fullPath: 'A://folder-34862398', contents: {
+        "folder-9523759823": { id: 'folder-9523759823', name: "nested in example", type: 'folder', fullPath: 'A://folder-34862398/folder-9523759823', contents: {
+          "folder-53829539": { id: 'folder-53829539', name: 'supernested', type: 'folder', fullPath: 'A://folder-34862398/folder-9523759823/folder-53829539', contents: {
+            "file-593485739": { id: 'file-593485739', name: 'some md example', type: 'file', content_type: 'md', fullPath: 'A://folder-34862398/folder-9523759823/folder-53829539/file-593485739', contents: 'lol sup' }
+          }}
+        }}
+      }}
+    },
+    "D://": {}
   }
 };
 

@@ -1,7 +1,6 @@
 /* =====================
    Getter & Setter for fileSystemState
-   These functions wrap the file system state so that we always retrieve it from
-   (and update it in) localStorage.
+   Always retrieve and update state from localStorage.
 ====================== */
 function getFileSystemState() {
   const appStateStr = localStorage.getItem('appState');
@@ -21,29 +20,80 @@ function setFileSystemState(newFS) {
 }
 
 /* =====================
-File Explorer Window Type
-This returns the HTML for a file explorer window.
+   Helper: Retrieve items for a given fullPath
+   Since each folder’s contents are stored under its fullPath key,
+   we simply return fs.folders[fullPath] or {} if not present.
+====================== */
+function getItemsForPath(fullPath) {
+  fullPath = normalizePath(fullPath);
+  const fs = getFileSystemState();
+
+  let current = fs.folders;
+  if (fullPath.substring(1, 4) === '://' && fullPath.length === 4) {
+    return current[fullPath]
+  }
+  
+  const drivePath = fullPath.substring(0, 4);
+  current = current[drivePath];
+
+  // Split the path into segments
+  let parts = fullPath.split('/').filter(Boolean).filter(str => str !== 'A:').filter(str => str !== 'D:').filter(str => str !== 'C:');
+
+  if (parts.length === 0) return {};
+  current = current[parts[0]]
+  let infinite_prot = 50;
+  while (infinite_prot > 1) {
+    let breakit = false;
+    infinite_prot -= 1;
+    parts.forEach(part => {
+      let objects = drillIntoFolder(part, current);
+      current = objects;
+      if (typeof objects.contents === 'undefined') breakit = true;
+    });
+    if (breakit) {
+      break;
+    }
+  }
+
+  function drillIntoFolder (part) {
+    if (part) {
+      if (current[part]) {
+        current = current[part]
+      }
+    }
+
+    if (typeof current.contents !== 'undefined') {
+      if (drivePath === 'C://' && part === "Documents" && Object.keys(current.contents).length === 0) {
+        fetchDocuments();
+      }
+
+      current = current.contents; // Move deeper into contents
+      return current;
+    }
+  }
+  return current;
+}
+
+/* =====================
+   File Explorer Window Content
+   Returns HTML for a file explorer window given a fullPath.
 ====================== */
 function getExplorerWindowContent(currentPath = 'C://') {
   currentPath = normalizePath(currentPath);
-  let fs = getFileSystemState();
-  let items = [];
-  if (currentPath === "Desktop") {
-    items = fs.desktop;
-  } else {
-    items = fs.folders[currentPath] || [];
-  }
+  let itemsObj = getItemsForPath(currentPath);
+  let items = Object.values(itemsObj);
   let listHtml = '<ul class="pl-5">';
   items.forEach(item => {
     let icon = item.type === 'folder' ? 'image/folder.svg' : 'image/file.svg';
     if (item.icon_url) { icon = item.icon_url; }
     if (item.type === "folder") {
-      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" onclick="openExplorer('${(currentPath === 'Desktop' ? 'Desktop' : currentPath) + '/' + item.name}')">
+      // For folders, the clickable link calls openExplorer with the folder’s id.
+      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" onclick="openExplorer('${item.id}')">
         <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}
       </li>`;
     } else {
       listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-file-id="${item.id}" ondblclick="openFile('${item.id}', event); event.stopPropagation();">
-        <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name} ${item.description ? '(' + item.description + ')' : ''}
+        <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}${item.description ? ' (' + item.description + ')' : ''}
       </li>`;
     }
   });
@@ -55,13 +105,13 @@ function getExplorerWindowContent(currentPath = 'C://') {
         <!-- Left Sidebar -->
         <div id="file-sidebar" class="w-1/4 border-r p-2">
           <ul>
-            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" data-path="C://" onclick="openExplorer('C://')">
+            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" onclick="openExplorer('C://')">
               <img src="image/drive_c.svg" class="inline h-4 w-4 mr-2"> C://
             </li>
-            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" data-path="A://" onclick="openExplorer('A://')">
+            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" onclick="openExplorer('A://')">
               <img src="image/floppy.svg" class="inline h-4 w-4 mr-2"> A://
             </li>
-            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" data-path="D://" onclick="openExplorer('D://')">
+            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" onclick="openExplorer('D://')">
               <img src="image/cd.svg" class="inline h-4 w-4 mr-2"> D://
             </li>
           </ul>
@@ -70,7 +120,7 @@ function getExplorerWindowContent(currentPath = 'C://') {
         <div id="file-main" class="w-3/4 p-2">
           <div id="breadcrumbs" class="mb-2">Path: ${getBreadcrumbs(currentPath)}</div>
           <div id="files-area">
-            <div id="files-area">${listHtml}</div>
+            ${listHtml}
           </div>
         </div>
       </div>
@@ -78,18 +128,26 @@ function getExplorerWindowContent(currentPath = 'C://') {
   `;
 }
 
-// Opens an explorer window for the given path.
-function openExplorer(path) {
-  path = normalizePath(path);
+/* =====================
+   openExplorer
+   Now accepts a folderId. It finds the folder’s fullPath and refreshes the explorer.
+====================== */
+function openExplorer(folderId) {
+  // If folderId is a drive root (like "C://"), use it directly.
+  let fullPath = /^[A-Z]:\/\/$/.test(folderId) ? folderId : findFolderFullPathById(folderId);
+  if (!fullPath) {
+    console.error("Folder not found for id:", folderId);
+    return;
+  }
   let explorerWindow = document.getElementById('explorer-window');
-  const newContent = getExplorerWindowContent(path);
+  const newContent = getExplorerWindowContent(fullPath);
   if (explorerWindow) {
     explorerWindow.querySelector('.file-explorer-window').outerHTML = newContent;
-    explorerWindow.querySelector('.file-explorer-window').setAttribute('data-current-path', path);
+    explorerWindow.querySelector('.file-explorer-window').setAttribute('data-current-path', fullPath);
     setTimeout(setupFolderDrop, 100);
   } else {
     explorerWindow = createWindow(
-      path,
+      fullPath,
       newContent,
       false,
       'explorer-window',
@@ -99,62 +157,54 @@ function openExplorer(path) {
       "Explorer"
     );
   }
-  if (path === "C:///Documents") {
-    fetchDocuments();
-  }
 }
 
 function refreshExplorerViews(folderPath) {
+  const fs = getFileSystemState();
   document.querySelectorAll('.file-explorer-window').forEach(explorer => {
     const currentPath = explorer.getAttribute('data-current-path');
     if (currentPath === folderPath) {
-      if (folderPath === "C:///Documents") {
-        fetchDocuments();
-      } else {
-
+      if (folderPath === "C://Documents") {
+        let documentsFolder = fs.folders["C://"] ? fs.folders["C://"]["Documents"] : null;
+        if (documentsFolder && Object.keys(documentsFolder.contents).length === 0) {
+          fetchDocuments();
+        }
       }
     }
   });
 }
 
-function normalizePath(path) {
-  if (path === "Desktop") return path;
-  if (/^[A-Z]:\/\/$/.test(path)) return path;
-  return path.replace(/\/+$/, "");
-}
-
-function getBreadcrumbs(path) {
-  path = normalizePath(path);
-  let driveMatch = path.match(/^([A-Z]:\/\/)(.*)/);
-  if (driveMatch) {
-    let drivePart = driveMatch[1];
-    let rest = driveMatch[2];
-    let breadcrumbHtml = `<span class="cursor-pointer hover:underline" onclick="openExplorer('${drivePart}')">${drivePart}</span>`;
-    if (rest) {
-      let parts = rest.split('/').filter(p => p !== '');
-      let cumulativePath = drivePart;
-      parts.forEach((part, index) => {
-        cumulativePath += '/' + part;
-        console.log(cumulativePath)
-        breadcrumbHtml += " / " + `<span class="cursor-pointer hover:underline" onclick="openExplorer('${cumulativePath}')">${part}</span>`;
-        if (index < parts.length - 1) {
-          cumulativePath += "/";
-        }
-      });
-    }
-    return breadcrumbHtml;
-  }
-  let parts = path.split('/').filter(p => p !== '');
-  let breadcrumbHtml = '';
-  let cumulativePath = "";
-  parts.forEach((part, index) => {
-    cumulativePath += part + (index < parts.length - 1 ? "/" : "");
-    breadcrumbHtml += `<span class="cursor-pointer hover:underline" onclick="openExplorer('${cumulativePath}')">${part}</span>`;
-    if (index < parts.length - 1) {
-      breadcrumbHtml += " / ";
-    }
+/* =====================
+   getBreadcrumbs
+   Builds the breadcrumb trail for a given fullPath. Each segment is a clickable link.
+====================== */
+function getBreadcrumbs(fullPath) {
+  fullPath = normalizePath(fullPath);
+  let driveMatch = fullPath.match(/^([A-Z]:\/\/)(.*)/);
+  if (!driveMatch) return fullPath;
+  let drivePart = driveMatch[1];
+  let rest = driveMatch[2]; // e.g., "folder-34862398/folder-9523759823"
+  let breadcrumbHtml = `<span class="cursor-pointer hover:underline" onclick="openExplorer('${drivePart}')">${drivePart}</span>`;
+  if (!rest) return breadcrumbHtml;
+  let parts = rest.split('/').filter(p => p !== '');
+  let currentPath = drivePart;
+  parts.forEach(partKey => {
+    // Append the folder key to currentPath.
+    currentPath = currentPath.endsWith('/') ? currentPath + partKey : currentPath + "/" + partKey;
+    let folderObj = findFolderObjectByFullPath(currentPath);
+    let displayName = folderObj ? folderObj.name : partKey;
+    breadcrumbHtml += ` / <span class="cursor-pointer hover:underline" onclick="openExplorer('${folderObj ? folderObj.id : currentPath}')">${displayName}</span>`;
   });
   return breadcrumbHtml;
+}
+
+/* =====================
+   normalizePath
+   Removes trailing slashes (except for drive roots).
+====================== */
+function normalizePath(path) {
+  if (/^[A-Z]:\/\/$/.test(path)) return path;
+  return path.replace(/\/+$/, "");
 }
 
 function makeFileItemsDraggable() {
@@ -212,13 +262,21 @@ function fetchDocuments() {
           name: file.url,
           type: "file",
           content: "",
+          fullPath: `C://Documents/${file.id}`,
           content_type: content_type,
           icon_url: icon_url,
           description: file.description || ""
         };
       });
       let fs = getFileSystemState();
-      fs.folders['C://'].find(it => it.id === 'c-docs').contents = fileItems;
+      if (fs.folders['C://'] && fs.folders['C://']['Documents']) {
+        // Convert fileItems array to an object keyed by file id.
+        const fileItemsObj = {};
+        fileItems.forEach(file => {
+          fileItemsObj[file.id] = file;
+        });
+        fs.folders['C://']['Documents'].contents = fileItemsObj;
+      }
       setFileSystemState(fs);
       let listHtml = '<ul class="pl-5">';
       fileItems.forEach(file => {
@@ -244,18 +302,18 @@ function fetchDocuments() {
 
 // Looks up a file by its ID (from desktop or current folder) and opens it.
 function openFile(incoming_file, e) {
-  const files = getFileSystemState();
+  const fs = getFileSystemState();
   let file;
   const explorerElem = e.target.closest('.file-explorer-window');
   if (explorerElem) {
-    currentPath = explorerElem.getAttribute('data-current-path');
-    file = (files.folders[currentPath] || []).find(it => it.id === incoming_file);
+    const currentPath = explorerElem.getAttribute('data-current-path');
+    const itemsObj = getItemsForPath(currentPath);
+    file = Object.values(itemsObj).find(it => it.id === incoming_file);
   }
-  if (!file) file = files.desktop.find(it => it.id === incoming_file);
-  console.log(file)
 
   if (!file || typeof file === 'string') {
-    const errorMessage = ('<p>File not found.</p>');
+    const file_name = `File ${typeof file === 'string' ? `"${file}"` : ''}`;
+    const errorMessage = `<p>${file_name}not found.</p>`;
     document.getElementById('error-popup-audio').play();
     createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
     return;
@@ -283,28 +341,28 @@ function openFile(incoming_file, e) {
     }
   } else {
     // Non-UGC file: fetch from the media folder.
-    if (file.content_type === 'image' || file.content_type === 'jpg' || file.content_type === 'jpeg' || file.content_type === 'png' || file.content_type === 'webp' || file.content_type === 'avif' || file.content_type === 'gif') {
+    if (['image', 'jpg', 'jpeg', 'png', 'webp', 'avif', 'gif'].includes(file.content_type)) {
       content = `<img src="./media/${file.name}" alt="${file.name}" class="mx-auto max-h-full max-w-full" style="padding:10px;">`;
-    } else if (file.content_type === 'video' || file.content_type === 'mov' || file.content_type === 'mp4' || file.content_type === 'webm' || file.content_type === 'avi') {
+    } else if (['video', 'mov', 'mp4', 'webm', 'avi'].includes(file.content_type)) {
       content = `<video controls class="mx-auto max-h-full max-w-full" style="padding:10px;">
             <source src="./media/${file.name}" type="video/mp4">
             Your browser does not support the video tag.
           </video>`;
-    } else if (file.content_type === 'audio' || file.content_type === 'mp3' || file.content_type === 'ogg' || file.content_type === 'wav') {
+    } else if (['audio', 'mp3', 'ogg', 'wav'].includes(file.content_type)) {
       content = `<audio controls class="mx-auto" style="min-width:320px; min-height:60px; padding:10px;">
             <source src="./media/${file.name}" type="audio/mpeg">
             Your browser does not support the audio element.
           </audio>`;
     } else if (file.content_type === 'html') {
-      content = file.content ? file.content : `<p style="padding:10px;">Loading HTML file...</p>`;
-      if (!file.content) {
+      content = file.contents ? file.contents : `<p style="padding:10px;">Loading HTML file...</p>`;
+      if (!file.contents) {
         fetch(`./media/${file.name}`)
           .then(response => response.text())
           .then(html => {
             const win = document.getElementById(file.id);
             const contentDiv = win ? win.querySelector('.p-2') : null;
             if (contentDiv) { contentDiv.innerHTML = html; }
-            file.content = html;
+            file.contents = html;
             saveState();
           })
           .catch(error => {
@@ -315,7 +373,6 @@ function openFile(incoming_file, e) {
           });
       }
     } else if (file.content_type === 'text' || file.content_type === 'txt') {
-      // For non-UGC text files, we fetch from the media folder.
       content = `<div id="file-content" style="padding:10px;">Loading file...</div>`;
       fetch(`./media/${file.name}`)
         .then(response => response.text())
@@ -398,4 +455,306 @@ function openFile(incoming_file, e) {
       }
     }
   }
+}
+
+function getFolderIdByFullPath(fullPath) {
+  // For drive roots, return the fullPath itself.
+  if (/^[A-Z]:\/\/$/.test(fullPath)) return fullPath;
+  const fs = getFileSystemState();
+  function searchInFolder(contents) {
+    for (const key in contents) {
+      const item = contents[key];
+      if (item.type === 'folder') {
+        if (item.fullPath === fullPath) return key;
+        const nested = fs.folders[item.fullPath] || {};
+        const result = searchInFolder(nested);
+        if (result) return result;
+      }
+    }
+    return null;
+  }
+  for (const rootKey in fs.folders) {
+    if (/^[A-Z]:\/\/$/.test(rootKey)) {
+      const result = searchInFolder(fs.folders[rootKey]);
+      if (result) return result;
+    }
+  }
+  return null;
+}
+
+/* =====================
+   Context Menu & Creation Functions
+   (They now accept an optional fromFullPath parameter to determine the parent folder.)
+====================== */
+document.addEventListener('contextmenu', function (e) {
+  e.preventDefault();
+  let target = e.target.closest('.draggable-icon, .file-item');
+  // For right-click on blank space, determine current folder from the explorer.
+  let explorerElem = document.querySelector('.file-explorer-window');
+  let fromFullPath = explorerElem ? explorerElem.getAttribute('data-current-path') : 'C://';
+  showContextMenu(e, target, fromFullPath);
+});
+
+document.addEventListener('click', function () {
+  hideContextMenu();
+});
+
+function showContextMenu(e, target, fromFullPath) {
+  const menu = document.getElementById('context-menu');
+  menu.style.zIndex = highestZ + 100;
+  let html = '';
+  if (target) {
+    html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="editItemName(event, this)">Edit Name</div>`;
+    html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="deleteItem(event, this)">Delete</div>`;
+    html += `<div class="px-4 py-2 text-gray-400">New Folder</div>`;
+    html += `<div class="px-4 py-2 text-gray-400">New File</div>`;
+  } else {
+    html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="createNewFolder(event, '${fromFullPath}')">New Folder</div>`;
+    html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="createNewFile(event, '${fromFullPath}')">New File</div>`;
+  }
+  menu.innerHTML = html;
+  menu.style.top = e.clientY + 'px';
+  menu.style.left = e.clientX + 'px';
+  menu.classList.remove('hidden');
+}
+
+function hideContextMenu() {
+  const menu = document.getElementById('context-menu');
+  menu.classList.add('hidden');
+}
+function editItemName(e, menuItem) {
+  e.stopPropagation();
+  hideContextMenu();
+  const targetElem = e.target.closest('[data-item-id]');
+  if (!targetElem) {
+    const errorMessage = "No item selected.";
+    document.getElementById('error-popup-audio').play();
+    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
+    return;
+  }
+  const itemId = targetElem.getAttribute('data-item-id');
+  let contextPath = "C://Desktop";
+  const explorerElem = targetElem.closest('.file-explorer-window');
+  if (explorerElem) {
+    contextPath = explorerElem.getAttribute('data-current-path');
+  }
+  let fs = getFileSystemState();
+  // Get parent's contents as an object keyed by item IDs.
+  let folderContents = fs.folders[contextPath] || {};
+  let item = folderContents[itemId];
+  if (!item) {
+    const errorMessage = "Item not found in file system.";
+    document.getElementById('error-popup-audio').play();
+    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
+    return;
+  }
+  let newName = prompt("Edit name:", item.name);
+  if (newName && newName !== item.name) {
+    item.name = newName;
+    // For folders, if the name changes, you might want to update its fullPath
+    if (item.type === "folder" && item.fullPath) {
+      // Compute new full path based on parent context.
+      const driveRootRegex = /^[A-Z]:\/\/$/;
+      let newFullPath = driveRootRegex.test(contextPath) ? contextPath + newName : contextPath + "/" + newName;
+      // Update the folder item.
+      item.fullPath = newFullPath;
+      // Also move its stored contents in fs.folders.
+      fs.folders[newFullPath] = fs.folders[item.fullPath] || {};
+      // Optionally, remove the old key if different.
+    }
+    if (contextPath === "C://Desktop") {
+      renderDesktopIcons();
+    } else {
+      const explorerWindow = document.getElementById('explorer-window');
+      if (explorerWindow) {
+        explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(contextPath);
+        setupFolderDrop();
+      }
+    }
+    setFileSystemState(fs);
+    saveState();
+  }
+}
+
+function deleteItem(e, menuItem) {
+  e.stopPropagation();
+  hideContextMenu();
+  const targetElem = e.target.closest('[data-item-id]');
+  if (!targetElem) {
+    const errorMessage = "No item selected.";
+    document.getElementById('error-popup-audio').play();
+    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
+    return;
+  }
+  const itemId = targetElem.getAttribute('data-item-id');
+  let contextPath = "C://Desktop";
+  const explorerElem = targetElem.closest('.file-explorer-window');
+  if (explorerElem) {
+    contextPath = explorerElem.getAttribute('data-current-path');
+  }
+  let fs = getFileSystemState();
+  let folderContents = fs.folders[contextPath] || {};
+  if (!(itemId in folderContents)) {
+    const errorMessage = "Item not found.";
+    document.getElementById('error-popup-audio').play();
+    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
+    return;
+  }
+  if (!confirm("Are you sure you want to delete this item?")) {
+    return;
+  }
+  // For folders, you might also want to remove its dedicated fs.folders entry.
+  let item = folderContents[itemId];
+  if (item && item.type === "folder" && item.fullPath) {
+    delete fs.folders[item.fullPath];
+  }
+  delete folderContents[itemId];
+  if (contextPath === "C://Desktop") {
+    renderDesktopIcons();
+  } else {
+    const explorerWindow = document.getElementById('explorer-window');
+    if (explorerWindow) {
+      explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(contextPath);
+      setupFolderDrop();
+    }
+  }
+  setFileSystemState(fs);
+  saveState();
+}
+
+function createNewFolder(e, fromFullPath) {
+  e.stopPropagation();
+  hideContextMenu();
+  let parentPath = fromFullPath || 'C://';
+  let folderName = prompt("Enter new folder name:", "New Folder");
+  if (!folderName) return;
+  
+  let fs = getFileSystemState();
+  // Ensure parent folder exists.
+  if (!fs.folders[parentPath]) {
+    fs.folders[parentPath] = {};
+  }
+  const folderId = "folder-" + Date.now();
+  // Compute new folder’s full path.
+  const driveRootRegex = /^[A-Z]:\/\/$/;
+  let newFolderPath = driveRootRegex.test(parentPath) ? parentPath + folderId : parentPath + "/" + folderId;
+  
+  // Create the new folder object.
+  const newFolderItem = {
+    id: folderId,
+    name: folderName,
+    type: "folder",
+    fullPath: newFolderPath,
+    contents: {}
+  };
+  // Insert the new folder into the parent's contents.
+  fs.folders[parentPath][folderId] = newFolderItem;
+  
+  // Refresh explorer view.
+  let explorerWindow = document.getElementById('explorer-window');
+  if (explorerWindow) {
+    explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(parentPath);
+    setupFolderDrop();
+  }
+  setFileSystemState(fs);
+  saveState();
+}
+
+function createNewFile(e, fromFullPath) {
+  e.stopPropagation();
+  hideContextMenu();
+  let parentPath = fromFullPath || 'C://';
+  let fileName = prompt("Enter new file name:", "New File.md");
+  if (!fileName) return;
+  
+  const newFile = {
+    id: "file-" + Date.now(),
+    name: fileName,
+    type: "ugc-file",
+    content: "",
+    content_type: "markdown",
+    icon_url: "image/doc.svg",
+    description: ""
+  };
+  
+  let fs = getFileSystemState();
+  if (!fs.folders[parentPath]) {
+    fs.folders[parentPath] = {};
+  }
+  fs.folders[parentPath][newFile.id] = newFile;
+  
+  let explorerWindow = document.getElementById('explorer-window');
+  if (explorerWindow) {
+    explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(parentPath);
+    setupFolderDrop();
+  }
+  setFileSystemState(fs);
+  saveState();
+}
+
+/* =====================
+   Helper: Recursively find a folder object by its fullPath.
+   Returns the folder object (which includes name, id, fullPath, etc.)
+====================== */
+function findFolderObjectByFullPath(fullPath) {
+  fullPath = normalizePath(fullPath);
+  const fs = getFileSystemState();
+  // For drive roots, return a synthetic folder object.
+  if (/^[A-Z]:\/\/$/.test(fullPath)) {
+    return { id: fullPath, name: fullPath, fullPath: fullPath };
+  }
+  function search(contents) {
+    for (const key in contents) {
+      const item = contents[key];
+      if (item.type === "folder") {
+        if (normalizePath(item.fullPath) === fullPath) {
+          return item;
+        }
+        const nested = getItemsForPath(item.fullPath);
+        const result = search(nested);
+        if (result) return result;
+      }
+    }
+    return null;
+  }
+  // Search in each drive root.
+  const fsFolders = getFileSystemState().folders;
+  for (const drive in fsFolders) {
+    if (/^[A-Z]:\/\/$/.test(drive)) {
+      const result = search(fsFolders[drive]);
+      if (result) return result;
+    }
+  }
+  return null;
+}
+
+/* =====================
+   Helper: Recursively find the fullPath for a folder given its id.
+   For drive roots the id is the fullPath.
+====================== */
+function findFolderFullPathById(folderId, file = false) {
+  // If folderId is a drive root, return it.
+  if (/^[A-Z]:\/\/$/.test(folderId)) return folderId;
+  function search(contents) {
+    for (const key in contents) {
+      const item = contents[key];
+      if (item.type === "folder" || file === true) {
+        if (key === folderId) {
+          return item.fullPath;
+        }
+        const nested = getItemsForPath(item.fullPath);
+        const result = search(nested);
+        if (result) return result;
+      }
+    }
+    return null;
+  }
+  const fsFolders = getFileSystemState().folders;
+  for (const drive in fsFolders) {
+    if (/^[A-Z]:\/\/$/.test(drive)) {
+      const result = search(fsFolders[drive]);
+      if (result) return result;
+    }
+  }
+  return null;
 }

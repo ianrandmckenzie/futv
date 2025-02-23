@@ -25,9 +25,13 @@ function makeIconDraggable(icon) {
   icon.addEventListener('dblclick', function (e) {
     const id = icon.getAttribute('data-window-id');
     let fs = getFileSystemState();
-    let item = fs.desktop.find(it => it.id === id);
+    // Retrieve the Desktop folder from the "C://" drive as an object.
+    let desktopFolder = fs.folders['C://'] ? fs.folders['C://']['Desktop'] : null;
+    if (!desktopFolder) return;
+    // desktopFolder.contents is now an object keyed by each item's id.
+    let item = desktopFolder.contents[id];
     if (item && item.type === 'folder') {
-      openExplorer("Desktop/" + item.name + "/");
+      openExplorer(item.id);
     } else if (item) {
       openFile(item.id, e);
     }
@@ -48,8 +52,12 @@ function updateDesktopSettings() {
 function renderDesktopIcons() {
   const desktopIconsContainer = document.getElementById('desktop-icons');
   desktopIconsContainer.innerHTML = "";
-  let fs = getFileSystemState().folders['C://'].find(it => it.id === 'c-desktop');
-  fs.contents.forEach(item => {
+  let fs = getFileSystemState();
+  // Retrieve the Desktop folder from the "C://" drive.
+  let desktopFolder = fs.folders['C://'] ? fs.folders['C://']['Desktop'] : null;
+  if (!desktopFolder) return;
+  // Iterate over the items in the Desktop folder (now stored as an object).
+  Object.values(desktopFolder.contents).forEach(item => {
     const iconElem = document.createElement('div');
     iconElem.id = "icon-" + item.id;
     iconElem.className = 'flex flex-col items-center cursor-pointer draggable-icon';
@@ -58,7 +66,7 @@ function renderDesktopIcons() {
       <span class="text-xs text-black max-w-20 text-center">${item.name}</span>`;
     iconElem.setAttribute('data-window-title', item.name);
     iconElem.setAttribute('data-window-id', item.id);
-    iconElem.setAttribute('data-window-type', 'Desktop');
+    iconElem.setAttribute('data-window-type', 'Explorer');
     iconElem.setAttribute('data-window-dimensions', '{"type": "integer", "height": 400, "width": 600}');
     iconElem.setAttribute('data-item-id', item.id);
     iconElem.setAttribute('data-window-content', item.content);
