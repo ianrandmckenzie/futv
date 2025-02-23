@@ -184,7 +184,7 @@ function getBreadcrumbs(fullPath) {
   if (!driveMatch) return fullPath;
   let drivePart = driveMatch[1];
   let rest = driveMatch[2]; // e.g., "folder-34862398/folder-9523759823"
-  let breadcrumbHtml = `<span class="cursor-pointer hover:underline" ondblclick="openExplorer('${drivePart}')">${drivePart}</span>`;
+  let breadcrumbHtml = `<span class="cursor-pointer hover:underline" onclick="openExplorer('${drivePart}')">${drivePart}</span>`;
   if (!rest) return breadcrumbHtml;
   let parts = rest.split('/').filter(p => p !== '');
   let currentPath = drivePart;
@@ -193,7 +193,7 @@ function getBreadcrumbs(fullPath) {
     currentPath = currentPath.endsWith('/') ? currentPath + partKey : currentPath + "/" + partKey;
     let folderObj = findFolderObjectByFullPath(currentPath);
     let displayName = folderObj ? folderObj.name : partKey;
-    breadcrumbHtml += ` / <span class="cursor-pointer hover:underline" ondblclick="openExplorer('${folderObj ? folderObj.id : currentPath}')">${displayName}</span>`;
+    breadcrumbHtml += ` / <span class="cursor-pointer hover:underline" onclick="openExplorer('${folderObj ? folderObj.id : currentPath}')">${displayName}</span>`;
   });
   return breadcrumbHtml;
 }
