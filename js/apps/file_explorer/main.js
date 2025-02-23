@@ -88,7 +88,7 @@ function getExplorerWindowContent(currentPath = 'C://') {
     if (item.icon_url) { icon = item.icon_url; }
     if (item.type === "folder") {
       // For folders, the clickable link calls openExplorer with the folder’s id.
-      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" onclick="openExplorer('${item.id}')">
+      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" ondblclick="openExplorer('${item.id}')">
         <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}
       </li>`;
     } else {
@@ -105,13 +105,13 @@ function getExplorerWindowContent(currentPath = 'C://') {
         <!-- Left Sidebar -->
         <div id="file-sidebar" class="w-1/4 border-r p-2">
           <ul>
-            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" onclick="openExplorer('C://')">
+            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" ondblclick="openExplorer('C://')">
               <img src="image/drive_c.svg" class="inline h-4 w-4 mr-2"> C://
             </li>
-            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" onclick="openExplorer('A://')">
+            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" ondblclick="openExplorer('A://')">
               <img src="image/floppy.svg" class="inline h-4 w-4 mr-2"> A://
             </li>
-            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" onclick="openExplorer('D://')">
+            <li class="cursor-pointer border-b border-gray-200 hover:bg-gray-50 system-folder" ondblclick="openExplorer('D://')">
               <img src="image/cd.svg" class="inline h-4 w-4 mr-2"> D://
             </li>
           </ul>
@@ -184,7 +184,7 @@ function getBreadcrumbs(fullPath) {
   if (!driveMatch) return fullPath;
   let drivePart = driveMatch[1];
   let rest = driveMatch[2]; // e.g., "folder-34862398/folder-9523759823"
-  let breadcrumbHtml = `<span class="cursor-pointer hover:underline" onclick="openExplorer('${drivePart}')">${drivePart}</span>`;
+  let breadcrumbHtml = `<span class="cursor-pointer hover:underline" ondblclick="openExplorer('${drivePart}')">${drivePart}</span>`;
   if (!rest) return breadcrumbHtml;
   let parts = rest.split('/').filter(p => p !== '');
   let currentPath = drivePart;
@@ -193,7 +193,7 @@ function getBreadcrumbs(fullPath) {
     currentPath = currentPath.endsWith('/') ? currentPath + partKey : currentPath + "/" + partKey;
     let folderObj = findFolderObjectByFullPath(currentPath);
     let displayName = folderObj ? folderObj.name : partKey;
-    breadcrumbHtml += ` / <span class="cursor-pointer hover:underline" onclick="openExplorer('${folderObj ? folderObj.id : currentPath}')">${displayName}</span>`;
+    breadcrumbHtml += ` / <span class="cursor-pointer hover:underline" ondblclick="openExplorer('${folderObj ? folderObj.id : currentPath}')">${displayName}</span>`;
   });
   return breadcrumbHtml;
 }
