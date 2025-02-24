@@ -73,11 +73,13 @@ function getExplorerWindowContent(currentPath = 'C://') {
   let items = Object.values(itemsObj);
   let listHtml = '<ul class="pl-5">';
   items.forEach(item => {
-    let icon = item.type === 'folder' ? 'image/folder.svg' : 'image/file.svg';
+    const isFolder = item.type === 'folder';
+    let icon = isFolder ? 'image/folder.svg' : 'image/file.svg';
+
     if (item.icon_url) { icon = item.icon_url; }
-    if (item.type === "folder") {
+    if (isFolder) {
       // For folders, the clickable link calls openExplorer with the folder’s id.
-      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" ondblclick="openExplorer('${item.id}')">
+      listHtml += `<li class="cursor-pointer hover:bg-gray-50 folder-item file-item" data-item-id="${item.id}" ondblclick="openExplorer('${item.id}')">
         <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}
       </li>`;
     } else {
@@ -274,33 +276,4 @@ function openFile(incoming_file, e) {
       }
     }
   }
-}
-
-function makeFileItemsDraggable() {
-  document.querySelectorAll('.file-item').forEach(item => {
-    item.setAttribute('draggable', true);
-    item.addEventListener('dragstart', function (e) {
-      e.dataTransfer.setData('text/plain', e.target.getAttribute('data-item-id'));
-    });
-  });
-}
-
-function setupFolderDrop() {
-  document.querySelectorAll('.system-folder').forEach(folder => {
-    folder.addEventListener('dragover', function (e) {
-      e.preventDefault();
-      folder.classList.add('bg-gray-50');
-    });
-    folder.addEventListener('dragleave', function () {
-      folder.classList.remove('bg-gray-50');
-    });
-    folder.addEventListener('drop', function (e) {
-      e.preventDefault();
-      folder.classList.remove('bg-gray-50');
-      const fileId = e.dataTransfer.getData('text/plain');
-      const newFolder = folder.getAttribute('data-path');
-      fileFolderMapping[fileId] = newFolder;
-      refreshExplorerViews();
-    });
-  });
 }
