@@ -196,6 +196,7 @@ function createNewFolder(e, fromFullPath) {
   }
   setFileSystemState(fs);
   saveState();
+  refreshExplorerViews();
 }
 
 function createNewFile(e, fromFullPath) {
@@ -249,4 +250,5 @@ function createNewFile(e, fromFullPath) {
   }
   setFileSystemState(fs);
   saveState();
+  refreshExplorerViews();
 }

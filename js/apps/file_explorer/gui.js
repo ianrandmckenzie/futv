@@ -29,20 +29,15 @@ function openExplorer(folderId) {
   }
 }
 
-// function refreshExplorerViews(folderPath) {
-//   const fs = getFileSystemState();
-//   document.querySelectorAll('.file-explorer-window').forEach(explorer => {
-//     const currentPath = explorer.getAttribute('data-current-path');
-//     if (currentPath === folderPath) {
-//       if (folderPath === "C://Documents") {
-//         let documentsFolder = fs.folders["C://"] ? fs.folders["C://"]["Documents"] : null;
-//         if (documentsFolder && Object.keys(documentsFolder.contents).length === 0) {
-//           fetchDocuments();
-//         }
-//       }
-//     }
-//   });
-// }
+// Todo: this shit dont work!
+function refreshExplorerViews() {
+  document.querySelectorAll('.file-explorer-window').forEach(explorer => {
+    const currentPath = explorer.getAttribute('data-current-path');
+    const newElementTxt = getExplorerWindowContent(currentPath);
+    const explorerWindowParent = explorer.parentElement;
+    explorerWindowParent.innerHTML = newElementTxt;
+  });
+}
 
 /* =====================
    getBreadcrumbs
@@ -305,7 +300,7 @@ function setupFolderDrop() {
       const fileId = e.dataTransfer.getData('text/plain');
       const newFolder = folder.getAttribute('data-path');
       fileFolderMapping[fileId] = newFolder;
-      // refreshExplorerViews(newFolder);
+      refreshExplorerViews();
     });
   });
 }

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FUTV</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="./cache.tailwind.js"></script>
   <script src="./tailwind.config.js"></script>
   <style>
     *:focus { outline: none; }
@@ -60,7 +60,7 @@
     <!-- Taskbar Tabs -->
     <div id="window-tabs" class="flex-1 flex space-x-2 overflow-x-auto whitespace-nowrap"></div>
     <!-- Media Control & Clock -->
-    <div class="flex items-center ml-auto space-x-2 bg-gray-200 p-1 border border-gray-400">
+    <div class="flex items-center mx-auto space-x-2 bg-gray-200 p-1 border border-gray-400">
       <div id="media-control" class="cursor-pointer" onclick="toggleMediaPlayback()"></div>
       <div id="clock"></div>
     </div>
