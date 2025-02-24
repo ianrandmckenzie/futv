@@ -79,7 +79,7 @@ function fetchDocuments() {
   fetch('./api/media.json')
     .then(response => response.json())
     .then(data => {
-      const files = data.data.files;
+      const files = data.files;
       const fileItems = files.map(file => {
         let content_type = file.file_type.toLowerCase();
         let icon_url = 'image/file.svg';
