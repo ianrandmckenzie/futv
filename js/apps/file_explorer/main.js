@@ -63,13 +63,13 @@ function getItemsForPath(fullPath) {
     }
 
     if (typeof current.contents !== 'undefined') {
-      if (drivePath === 'C://' && part === "Documents" && Object.keys(current.contents).length === 0) {
+      if ((drivePath + part === 'C://Documents') && Object.keys(current.contents).length === 0) {
         fetchDocuments();
       }
 
       current = current.contents; // Move deeper into contents
       return current;
-    }
+    } else { return current }
   }
   return current;
 }
@@ -159,20 +159,20 @@ function openExplorer(folderId) {
   }
 }
 
-function refreshExplorerViews(folderPath) {
-  const fs = getFileSystemState();
-  document.querySelectorAll('.file-explorer-window').forEach(explorer => {
-    const currentPath = explorer.getAttribute('data-current-path');
-    if (currentPath === folderPath) {
-      if (folderPath === "C://Documents") {
-        let documentsFolder = fs.folders["C://"] ? fs.folders["C://"]["Documents"] : null;
-        if (documentsFolder && Object.keys(documentsFolder.contents).length === 0) {
-          fetchDocuments();
-        }
-      }
-    }
-  });
-}
+// function refreshExplorerViews(folderPath) {
+//   const fs = getFileSystemState();
+//   document.querySelectorAll('.file-explorer-window').forEach(explorer => {
+//     const currentPath = explorer.getAttribute('data-current-path');
+//     if (currentPath === folderPath) {
+//       if (folderPath === "C://Documents") {
+//         let documentsFolder = fs.folders["C://"] ? fs.folders["C://"]["Documents"] : null;
+//         if (documentsFolder && Object.keys(documentsFolder.contents).length === 0) {
+//           fetchDocuments();
+//         }
+//       }
+//     }
+//   });
+// }
 
 /* =====================
    getBreadcrumbs
@@ -231,7 +231,7 @@ function setupFolderDrop() {
       const fileId = e.dataTransfer.getData('text/plain');
       const newFolder = folder.getAttribute('data-path');
       fileFolderMapping[fileId] = newFolder;
-      refreshExplorerViews(newFolder);
+      // refreshExplorerViews(newFolder);
     });
   });
 }
@@ -630,18 +630,13 @@ function createNewFolder(e, fromFullPath) {
   hideContextMenu();
   let parentPath = fromFullPath || 'C://';
   let folderName = prompt("Enter new folder name:", "New Folder");
-  if (!folderName) return;
+  if (!folderName) folderName = 'Untitled';
   
   let fs = getFileSystemState();
-  // Ensure parent folder exists.
-  if (!fs.folders[parentPath]) {
-    fs.folders[parentPath] = {};
-  }
   const folderId = "folder-" + Date.now();
   // Compute new folder’s full path.
   const driveRootRegex = /^[A-Z]:\/\/$/;
   let newFolderPath = driveRootRegex.test(parentPath) ? parentPath + folderId : parentPath + "/" + folderId;
-  
   // Create the new folder object.
   const newFolderItem = {
     id: folderId,
@@ -650,13 +645,39 @@ function createNewFolder(e, fromFullPath) {
     fullPath: newFolderPath,
     contents: {}
   };
+
+  const drive = fromFullPath.substring(4, -1);
+  let paths = fromFullPath.substring(4).split('/');
+  paths.unshift(drive);
+  // Traverse to the folder object where the new folder belongs
+  let destination = fs.folders;
+  if (paths[1] !== '') { // aka, we are at the root of the drive
+    paths.forEach(path => {
+      const destination_parent = destination;
+      destination = destination[path]
+      if (typeof destination.contents !== 'undefined') {
+        if (typeof destination.contents !== 'string') {
+          destination = destination.contents;
+        }
+        if (typeof destination.contents === 'string') {
+          // In other words, "Go back, you've gone too far!"
+          destination = destination_parent;
+        }
+      }
+    });
+  } else {
+    destination = destination[drive]
+  }
+
   // Insert the new folder into the parent's contents.
-  fs.folders[parentPath][folderId] = newFolderItem;
+  destination[folderId] = newFolderItem;
   
   // Refresh explorer view.
+  // Currently does not work properly.
   let explorerWindow = document.getElementById('explorer-window');
   if (explorerWindow) {
     explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(parentPath);
+    // Also currently does not work
     setupFolderDrop();
   }
   setFileSystemState(fs);
@@ -668,7 +689,7 @@ function createNewFile(e, fromFullPath) {
   hideContextMenu();
   let parentPath = fromFullPath || 'C://';
   let fileName = prompt("Enter new file name:", "New File.md");
-  if (!fileName) return;
+  if (!fileName) fileName = 'Untitled';
   
   const newFile = {
     id: "file-" + Date.now(),
@@ -679,12 +700,33 @@ function createNewFile(e, fromFullPath) {
     icon_url: "image/doc.svg",
     description: ""
   };
-  
+
   let fs = getFileSystemState();
-  if (!fs.folders[parentPath]) {
-    fs.folders[parentPath] = {};
+  const drive = fromFullPath.substring(4, -1);
+  let paths = fromFullPath.substring(4).split('/');
+  paths.unshift(drive);
+  // Traverse to the folder object where the new folder belongs
+  let destination = fs.folders;
+  if (paths[1] !== '') { // aka, we are at the root of the drive
+    paths.forEach(path => {
+      const destination_parent = destination;
+      destination = destination[path]
+      if (typeof destination.contents !== 'undefined') {
+        if (typeof destination.contents !== 'string') {
+          destination = destination.contents;
+        }
+        if (typeof destination.contents === 'string') {
+          // In other words, "Go back, you've gone too far!"
+          destination = destination_parent;
+        }
+      }
+    });
+  } else {
+    destination = destination[drive]
   }
-  fs.folders[parentPath][newFile.id] = newFile;
+
+  // Insert the new folder into the parent's contents.
+  destination[newFile.id] = newFile;
   
   let explorerWindow = document.getElementById('explorer-window');
   if (explorerWindow) {
