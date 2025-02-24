@@ -20,6 +20,7 @@ function showContextMenu(e, target, fromFullPath) {
   menu.style.zIndex = highestZ + 100;
   let html = '';
   if (target) {
+    target.classList.add('right-click-target');
     html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="editItemName(event, this)">Edit Name</div>`;
     html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="deleteItem(event, this)">Delete</div>`;
     html += `<div class="px-4 py-2 text-gray-400">New Folder</div>`;
@@ -42,7 +43,7 @@ function hideContextMenu() {
 function editItemName(e, menuItem) {
   e.stopPropagation();
   hideContextMenu();
-  const targetElem = e.target.closest('[data-item-id]');
+  const targetElem = document.querySelector('.right-click-target');
   if (!targetElem) {
     const errorMessage = "No item selected.";
     document.getElementById('error-popup-audio').play();
@@ -50,15 +51,15 @@ function editItemName(e, menuItem) {
     return;
   }
   const itemId = targetElem.getAttribute('data-item-id');
-  let contextPath = "C://Desktop";
   const explorerElem = targetElem.closest('.file-explorer-window');
-  if (explorerElem) {
-    contextPath = explorerElem.getAttribute('data-current-path');
-  }
+  const contextPath = explorerElem.getAttribute('data-current-path');
   let fs = getFileSystemState();
   // Get parent's contents as an object keyed by item IDs.
-  let folderContents = fs.folders[contextPath] || {};
+  let folderContents = findFolderObjectByFullPath(contextPath, fs).contents;
+  console.log('contextPath: ', contextPath)
+  console.log('folderContents: ', folderContents)
   let item = folderContents[itemId];
+  console.log('item: ', item)
   if (!item) {
     const errorMessage = "Item not found in file system.";
     document.getElementById('error-popup-audio').play();
@@ -90,53 +91,49 @@ function editItemName(e, menuItem) {
     }
     setFileSystemState(fs);
     saveState();
+    refreshExplorerViews();
   }
 }
 
 function deleteItem(e, menuItem) {
   e.stopPropagation();
   hideContextMenu();
-  const targetElem = e.target.closest('[data-item-id]');
+  const targetElem = document.querySelector('.right-click-target');
   if (!targetElem) {
-    const errorMessage = "No item selected.";
+    const errorMessage = "No file selected.";
     document.getElementById('error-popup-audio').play();
     createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
     return;
   }
-  const itemId = targetElem.getAttribute('data-item-id');
-  let contextPath = "C://Desktop";
+  let fileId = targetElem.getAttribute('data-item-id');
   const explorerElem = targetElem.closest('.file-explorer-window');
-  if (explorerElem) {
-    contextPath = explorerElem.getAttribute('data-current-path');
-  }
+  const contextPath = explorerElem.getAttribute('data-current-path');
   let fs = getFileSystemState();
-  let folderContents = fs.folders[contextPath] || {};
-  if (!(itemId in folderContents)) {
+  let folderContents = {};
+  const isDrive = contextPath.length === 4;
+  if (isDrive) {
+    folderContents = fs.folders[contextPath];
+  } else {
+    folderContents = findFolderObjectByFullPath(contextPath, fs);
+  }
+  if (!(fileId in folderContents)) {
     const errorMessage = "Item not found.";
     document.getElementById('error-popup-audio').play();
     createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
     return;
   }
-  if (!confirm("Are you sure you want to delete this item?")) {
+  if (!confirm("Are you sure you want to delete this file?")) {
     return;
   }
-  // For folders, you might also want to remove its dedicated fs.folders entry.
-  let item = folderContents[itemId];
-  if (item && item.type === "folder" && item.fullPath) {
-    delete fs.folders[item.fullPath];
-  }
-  delete folderContents[itemId];
-  if (contextPath === "C://Desktop") {
-    renderDesktopIcons();
-  } else {
-    const explorerWindow = document.getElementById('explorer-window');
-    if (explorerWindow) {
-      explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(contextPath);
-      setupFolderDrop();
-    }
+  delete folderContents[fileId];
+  const explorerWindow = document.getElementById('explorer-window');
+  if (explorerWindow) {
+    explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(contextPath);
+    setupFolderDrop();
   }
   setFileSystemState(fs);
   saveState();
+  refreshExplorerViews();
 }
 
 function createNewFolder(e, fromFullPath) {

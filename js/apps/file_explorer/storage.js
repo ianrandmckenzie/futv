@@ -119,7 +119,7 @@ function fetchDocuments() {
       setFileSystemState(fs);
       let listHtml = '<ul class="pl-5">';
       fileItems.forEach(file => {
-        listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-file-id="${file.id}" data-file-type="${file.content_type}" ondblclick="openFile('${file.id}', event); event.stopPropagation();">
+        listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${file.id}" data-file-type="${file.content_type}" ondblclick="openFile('${file.id}', event); event.stopPropagation();">
           <img src="${file.icon_url}" class="inline h-4 w-4 mr-2"> ${file.name} ${file.description ? '(' + file.description + ')' : ''}
         </li>`;
       });

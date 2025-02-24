@@ -81,7 +81,7 @@ function getExplorerWindowContent(currentPath = 'C://') {
         <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}
       </li>`;
     } else {
-      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-file-id="${item.id}" ondblclick="openFile('${item.id}', event); event.stopPropagation();">
+      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" ondblclick="openFile('${item.id}', event); event.stopPropagation();">
         <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}${item.description ? ' (' + item.description + ')' : ''}
       </li>`;
     }
@@ -280,7 +280,7 @@ function makeFileItemsDraggable() {
   document.querySelectorAll('.file-item').forEach(item => {
     item.setAttribute('draggable', true);
     item.addEventListener('dragstart', function (e) {
-      e.dataTransfer.setData('text/plain', e.target.getAttribute('data-file-id'));
+      e.dataTransfer.setData('text/plain', e.target.getAttribute('data-item-id'));
     });
   });
 }

@@ -36,9 +36,9 @@ function getFolderIdByFullPath(fullPath) {
    Helper: Recursively find a folder object by its fullPath.
    Returns the folder object (which includes name, id, fullPath, etc.)
 ====================== */
-function findFolderObjectByFullPath(fullPath) {
+function findFolderObjectByFullPath(fullPath, fileSystem = null) {
   fullPath = normalizePath(fullPath);
-  const fs = getFileSystemState();
+  const fs = fileSystem || getFileSystemState();
   // For drive roots, return a synthetic folder object.
   if (/^[A-Z]:\/\/$/.test(fullPath)) {
     return { id: fullPath, name: fullPath, fullPath: fullPath };
@@ -58,7 +58,7 @@ function findFolderObjectByFullPath(fullPath) {
     return null;
   }
   // Search in each drive root.
-  const fsFolders = getFileSystemState().folders;
+  const fsFolders = fs.folders;
   for (const drive in fsFolders) {
     if (/^[A-Z]:\/\/$/.test(drive)) {
       const result = search(fsFolders[drive]);
