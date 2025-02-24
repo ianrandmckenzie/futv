@@ -1,4 +1,4 @@
-function createWindow(title, content, isNav = false, windowId = null, initialMinimized = false, restore = false, dimensions = { type: 'default' }, windowType = 'default', parentWin = null) {
+function createWindow(title, content, isNav = false, windowId = null, initialMinimized = false, restore = false, dimensions = { type: 'default' }, windowType = 'default', parentWin = null, color = 'white') {
   let contentToPrint = content;
   if (!windowId) {
     windowId = 'window-' + Date.now();
@@ -17,25 +17,26 @@ function createWindow(title, content, isNav = false, windowId = null, initialMin
   }
   const win = document.createElement('div');
   win.id = windowId;
-  win.className = 'absolute bg-white border border-gray-500 shadow-lg overflow-auto';
+  win.className = `absolute border border-gray-500 shadow-lg overflow-auto`;
   win.style.cssText = styleDimensions;
   win.style.minWidth = "350px";
   win.style.minHeight = "240px";
   if (initialMinimized) {
     win.style.display = 'none';
   }
-  win.innerHTML = `<div class="relative w-full h-[calc(100%-1rem)]">
-    <div class="bg-handlebarBlue sticky top-0 left-0 text-white px-2 py-1 flex justify-between items-center cursor-move">
-      <span>${title}</span>
-      <div class="my-1">
-        <button onclick="minimizeWindow('${windowId}'); event.stopPropagation();" class="bg-yellow-500 h-6 w-6 text-white">_</button>
-        <button onclick="toggleFullScreen('${windowId}'); event.stopPropagation();" class="bg-green-500 h-6 w-6 text-white">⛶</button>
-        <button onclick="closeWindow('${windowId}'); event.stopPropagation();" class="bg-red-500 h-6 w-6 text-white">X</button>
+  win.innerHTML = `
+    <div class="relative w-full h-[calc(100%-1rem)]">
+      <div class="bg-handlebarBlue sticky top-0 left-0 text-white px-2 py-1 flex justify-between items-center cursor-move">
+        <span>${title}</span>
+        <div class="my-1">
+          <button onclick="minimizeWindow('${windowId}'); event.stopPropagation();" class="bg-yellow-500 h-6 w-6 text-white">_</button>
+          <button onclick="toggleFullScreen('${windowId}'); event.stopPropagation();" class="bg-green-500 h-6 w-6 text-white">⛶</button>
+          <button onclick="closeWindow('${windowId}'); event.stopPropagation();" class="bg-red-500 h-6 w-6 text-white">X</button>
+        </div>
       </div>
-    </div>
-    <div class="p-2 ${windowType === 'editor' ? 'h-full w-full' : ''} overflow-auto" ${windowType === 'default' ? 'contenteditable="true" oninput="updateContent(\'' + windowId + '\', this.innerHTML)"' : ''}>
-      ${contentToPrint}
-    </div>
+      <div class="p-2 bg-${color} h-full ${windowType === 'editor' ? 'w-full' : ''} overflow-auto" ${windowType === 'default' ? 'contenteditable="true" oninput="updateContent(\'' + windowId + '\', this.innerHTML)"' : ''}>
+        ${contentToPrint}
+      </div>
     </div>`;
   win.addEventListener('click', function () {
     bringToFront(win);

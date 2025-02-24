@@ -7,5 +7,5 @@ function openAboutWindow() {
       <p>Enjoy your journey through time!</p>
     </div>
   `;
-  createWindow("About this computer", content, false, null, false, false, { type: 'integer', width: 400, height: 300 }, "about");
+  createWindow("About this computer", content, false, null, false, false, { type: 'integer', width: 400, height: 300 }, "default", null, 'gray-200 cursor-not-allowed pointer-events-none');
 }
