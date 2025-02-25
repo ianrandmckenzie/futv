@@ -26,8 +26,10 @@ window.addEventListener('click', function (e) {
   const startMenu = document.getElementById('start-menu');
   const startButton = document.getElementById('start-button');
   if (!startMenu.contains(e.target) && !startButton.contains(e.target)) {
+    if (!startMenu.classList.contains('hidden')) {
+      toggleButtonActiveState('start-button');
+    }
     startMenu.classList.add('hidden');
-    toggleButtonActiveState('start-button');
   }
 });
 
