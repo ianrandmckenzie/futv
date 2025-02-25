@@ -11,10 +11,10 @@ function toggleButtonActiveState(id, rename = null) {
   btn = document.getElementById(id);
   btn.classList.toggle('bg-gray-50');
   btn.classList.toggle('bg-gray-200');
-  btn.classList.toggle('border-gray-50');
+  btn.classList.toggle('border-gray-200');
   btn.classList.toggle('border-black');
   const btnInner = btn.querySelector('span')
-  btnInner.classList.toggle('border-gray-50');
+  btnInner.classList.toggle('border-gray-200');
   btnInner.classList.toggle('border-black');
   if (rename) {
     btnInner.innerHTML = rename;
