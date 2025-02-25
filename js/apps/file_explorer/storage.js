@@ -128,7 +128,6 @@ function fetchDocuments() {
       if (container) {
         container.innerHTML = listHtml;
       }
-      makeFileItemsDraggable();
     })
     .catch(error => {
       console.error("Error fetching media list:", error);

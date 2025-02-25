@@ -2,6 +2,7 @@
 A marketing / distribution website in the style of old-school operating systems.
 
 ## Adding new desktop icons
+WARNING: This section is out of date.
 1. Search in the document for `<!-- Desktop Icons -->`
 2. Copy one of them and customize as needed:
 ```
@@ -24,6 +25,7 @@ A marketing / distribution website in the style of old-school operating systems.
 ```
 
 ## Adding new Start Menu items
+WARNING: This section is out of date.
 1. Search in the document for `<!-- Start Menu -->`
 2. Copy one of them and customize as needed:
 ```html
@@ -35,6 +37,7 @@ A marketing / distribution website in the style of old-school operating systems.
 ```
 
 ## Adding new media files for the Documents folder
+WARNING: This section is out of date.
 1. Add the filename in `api/media.json`
 ```json
 [
@@ -55,4 +58,10 @@ media
 ├── mail.mp3
 ├── test.html
 └── my-new-item.webp
+```
+
+## Buttons
+Here's a template. Figure it out.
+```html
+<button id="some-example-button" onclick="setTimeout(function(){toggleButtonActiveState('some-example-button', 'OK')}, 1000);toggleButtonActiveState('some-example-button', 'Cool!');createWindow('OK Button Pressed', 'Your OK button has successfully been pressed!', false, 'ok-pressed', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-300 border-t-2 border-l-2 border-gray-400 text-black"><span class="px-2 py-1 border-r-2 border-b-2 border-black block h-full w-full">OK</span></button>
 ```
