@@ -6,9 +6,11 @@ function toggleStartMenu() {
 
 function toggleButtonActiveState(id, rename = null) {
   let btn;
-  console.log(id)
-  if (typeof id !== 'string') btn = id;
-  btn = document.getElementById(id);
+  if (typeof id !== 'string') {
+    btn = id;
+  } else {
+    btn = document.getElementById(id);
+  }
   btn.classList.toggle('bg-gray-50');
   btn.classList.toggle('bg-gray-200');
   btn.classList.toggle('border-gray-200');

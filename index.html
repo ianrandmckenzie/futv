@@ -45,15 +45,10 @@
       <!-- Start Menu -->
       <div id="start-menu" class="absolute bottom-[2.75rem] -left-2 bg-gray-100 border border-gray-500 w-72 hidden">
         <ul>
-          <!-- Home minimizes all windows -->
-          <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="toggleStartMenu();minimizeAllWindows()">
-            <img src="image/desktop.svg" class="h-6 w-6 inline mr-2" alt="Home">
-            Home
-          </li>
           <!-- Documents -->
-          <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="toggleStartMenu();openExplorer('Documents')">
-            <img src="image/documents.svg" class="h-6 w-6 inline mr-2" alt="Documents">
-            Documents
+          <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="toggleStartMenu();openExplorer('C://')">
+            <img src="image/computer.svg" class="h-6 w-6 inline mr-2" alt="My Computer">
+            My Computer
           </li>
           <!-- About this computer -->
           <li class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="toggleStartMenu();openAboutWindow()">
@@ -77,8 +72,9 @@
     <!-- Media Control & Clock -->
     <div class="flex items-center mx-auto space-x-2 bg-gray-200 border-b-1 my-1 border-r-1 border-gray-400">
       <div class="h-full w-full border-t border-l border-gray-700 p-1">
-        <div id="media-control" class="cursor-pointer" onclick="toggleMediaPlayback()"></div>
-        <div id="clock"></div>
+        <div id="media-control" class="cursor-pointer inline-block ml-2" onclick="toggleMediaPlayback()"></div>
+        <div class="cursor-pointer inline-block" title="Minimize all windows" onclick="toggleStartMenu();minimizeAllWindows()"><img src="image/desktop.svg" class="h-6 w-6 inline mr-2" alt="Minimize all windows to reveal the desktop"></div>
+        <div id="clock" class="inline-block"></div>
       </div>
     </div>
   </div>

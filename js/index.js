@@ -27,7 +27,7 @@ window.addEventListener('click', function (e) {
   const startButton = document.getElementById('start-button');
   if (!startMenu.contains(e.target) && !startButton.contains(e.target)) {
     startMenu.classList.add('hidden');
-    toggleButtonActiveState('start-menu');
+    toggleButtonActiveState('start-button');
   }
 });
 
