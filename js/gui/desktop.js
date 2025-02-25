@@ -51,8 +51,8 @@ function renderDesktopIcons() {
     iconElem.innerHTML = `<img src="${iconSrc}" alt="${item.name}" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16 desktop-folder-icon" />
       <span class="text-xs text-black max-w-20 text-center desktop-folder-icon">${item.name}</span>`;
     if (item.type === 'file' || item.type === 'ugc-file') {
-      iconElem.setAttribute('ondblclick', `openFile('${item.id}', event)`);
-    } else if (item.type === 'file') {
+      iconElem.setAttribute('ondblclick', `openFile('${item.id}', event);event.stopPropagation()`);
+    } else if (item.type === 'folder') {
       iconElem.setAttribute('ondblclick', `openExplorer('${item.id}')`);
     }
     desktopIconsContainer.appendChild(iconElem);
