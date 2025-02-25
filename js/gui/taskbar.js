@@ -1,6 +1,24 @@
 function toggleStartMenu() {
   const menu = document.getElementById('start-menu');
   menu.classList.toggle('hidden');
+  toggleButtonActiveState('start-button');
+}
+
+function toggleButtonActiveState(id, rename = null) {
+  let btn;
+  console.log(id)
+  if (typeof id !== 'string') btn = id;
+  btn = document.getElementById(id);
+  btn.classList.toggle('bg-gray-100');
+  btn.classList.toggle('bg-gray-300');
+  btn.classList.toggle('border-gray-500');
+  btn.classList.toggle('border-black');
+  const btnInner = btn.querySelector('span')
+  btnInner.classList.toggle('border-gray-500');
+  btnInner.classList.toggle('border-black');
+  if (rename) {
+    btnInner.innerHTML = rename;
+  }
 }
 
 function minimizeAllWindows() {
