@@ -45,7 +45,7 @@ function editItemName(e, menuItem) {
   hideContextMenu();
   const targetElem = document.querySelector('.right-click-target');
   if (!targetElem) {
-    const errorMessage = `<h2 class="text-3xl">No item selected.</h2><button id="some-example-button" onclick="setTimeout(function(){toggleButtonActiveState('some-example-button', 'OK')}, 1000);toggleButtonActiveState('some-example-button', 'Cool!');createWindow('OK Button Pressed', 'Your OK button has successfully been pressed!', false, 'ok-pressed', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-300 border-t-2 border-l-2 border-gray-400 text-black"><span class="px-2 py-1 border-r-2 border-b-2 border-black block h-full w-full">OK</span></button>`;
+    const errorMessage = `<h2 class="text-3xl">No item selected.</h2><button id="some-example-button" onclick="setTimeout(function(){toggleButtonActiveState('some-example-button', 'OK')}, 1000);toggleButtonActiveState('some-example-button', 'Cool!');createWindow('OK Button Pressed', 'Your OK button has successfully been pressed!', false, 'ok-pressed', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-100 border-t-2 border-l-2 border-gray-50 mr-2"><span class="px-3 py-1 border-b-2 border-r-2 border-black">OK</span></button>`;
     document.getElementById('error-popup-audio').play();
     createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
     return;
@@ -61,7 +61,7 @@ function editItemName(e, menuItem) {
   let item = folderContents[itemId];
   console.log('item: ', item)
   if (!item) {
-    const errorMessage = `<h2 class="text-3xl">Item not found in file system.</h2><button id="some-example-button" onclick="setTimeout(function(){toggleButtonActiveState('some-example-button', 'OK')}, 1000);toggleButtonActiveState('some-example-button', 'Cool!');createWindow('OK Button Pressed', 'Your OK button has successfully been pressed!', false, 'ok-pressed', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-300 border-t-2 border-l-2 border-gray-400 text-black"><span class="px-2 py-1 border-r-2 border-b-2 border-black block h-full w-full">OK</span></button>`;
+    const errorMessage = `<h2 class="text-3xl">Item not found in file system.</h2><button id="some-example-button" onclick="setTimeout(function(){toggleButtonActiveState('some-example-button', 'OK')}, 1000);toggleButtonActiveState('some-example-button', 'Cool!');createWindow('OK Button Pressed', 'Your OK button has successfully been pressed!', false, 'ok-pressed', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-100 border-t-2 border-l-2 border-gray-50 mr-2"><span class="px-3 py-1 border-b-2 border-r-2 border-black">OK</span></button>`;
     document.getElementById('error-popup-audio').play();
     createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
     return;
@@ -100,7 +100,7 @@ function deleteItem(e, menuItem) {
   hideContextMenu();
   const targetElem = document.querySelector('.right-click-target');
   if (!targetElem) {
-    const errorMessage = `<h2 class="text-3xl">No file selected.</h2><button id="some-example-button" onclick="setTimeout(function(){toggleButtonActiveState('some-example-button', 'OK')}, 1000);toggleButtonActiveState('some-example-button', 'Cool!');createWindow('OK Button Pressed', 'Your OK button has successfully been pressed!', false, 'ok-pressed', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-300 border-t-2 border-l-2 border-gray-400 text-black"><span class="px-2 py-1 border-r-2 border-b-2 border-black block h-full w-full">OK</span></button>`;
+    const errorMessage = `<h2 class="text-3xl">No file selected.</h2><button id="some-example-button" onclick="setTimeout(function(){toggleButtonActiveState('some-example-button', 'OK')}, 1000);toggleButtonActiveState('some-example-button', 'Cool!');createWindow('OK Button Pressed', 'Your OK button has successfully been pressed!', false, 'ok-pressed', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-100 border-t-2 border-l-2 border-gray-50 mr-2"><span class="px-3 py-1 border-b-2 border-r-2 border-black">OK</span></button>`;
     document.getElementById('error-popup-audio').play();
     createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
     return;
@@ -117,7 +117,7 @@ function deleteItem(e, menuItem) {
     folderContents = findFolderObjectByFullPath(contextPath, fs);
   }
   if (!(fileId in folderContents)) {
-    const errorMessage = `<h2 class="text-3xl">Item not found.</h2><button id="some-example-button" onclick="setTimeout(function(){toggleButtonActiveState('some-example-button', 'OK')}, 1000);toggleButtonActiveState('some-example-button', 'Cool!');createWindow('OK Button Pressed', 'Your OK button has successfully been pressed!', false, 'ok-pressed', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-300 border-t-2 border-l-2 border-gray-400 text-black"><span class="px-2 py-1 border-r-2 border-b-2 border-black block h-full w-full">OK</span></button>`;
+    const errorMessage = `<h2 class="text-3xl">Item not found.</h2><button id="some-example-button" onclick="setTimeout(function(){toggleButtonActiveState('some-example-button', 'OK')}, 1000);toggleButtonActiveState('some-example-button', 'Cool!');createWindow('OK Button Pressed', 'Your OK button has successfully been pressed!', false, 'ok-pressed', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-100 border-t-2 border-l-2 border-gray-50 mr-2"><span class="px-3 py-1 border-b-2 border-r-2 border-black">OK</span></button>`;
     document.getElementById('error-popup-audio').play();
     createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
     return;

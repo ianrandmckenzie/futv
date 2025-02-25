@@ -89,7 +89,7 @@ function getSettingsContent() {
         <label class="block text-sm">Show Seconds on Clock:</label>
         <input id="clockSecondsInput" type="checkbox" ${desktopSettings.clockSeconds ? "checked" : ""} />
       </div>
-      <button id="settings-apply-button" onclick="setTimeout(function(){toggleButtonActiveState('settings-apply-button', 'Apply')}, 1000);toggleButtonActiveState('settings-apply-button', 'Applied!');updateDesktopSettings();createWindow('Settings Applied', 'Your settings have successfully been saved!', false, 'settings-saved', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-300 border-t-2 border-l-2 border-gray-400 text-black"><span class="px-2 py-1 border-r-2 border-b-2 border-black block h-full w-full">Apply</span></button>
+      <button id="settings-apply-button" onclick="setTimeout(function(){toggleButtonActiveState('settings-apply-button', 'Apply')}, 1000);toggleButtonActiveState('settings-apply-button', 'Applied!');updateDesktopSettings();createWindow('Settings Applied', 'Your settings have successfully been saved!', false, 'settings-saved', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-100 border-t-2 border-l-2 border-gray-50 mr-2"><span class="px-3 py-1 border-b-2 border-r-2 border-black">Apply</span></button>
     </div>
   `;
 }

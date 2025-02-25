@@ -9,12 +9,12 @@ function toggleButtonActiveState(id, rename = null) {
   console.log(id)
   if (typeof id !== 'string') btn = id;
   btn = document.getElementById(id);
-  btn.classList.toggle('bg-gray-100');
-  btn.classList.toggle('bg-gray-300');
-  btn.classList.toggle('border-gray-500');
+  btn.classList.toggle('bg-gray-50');
+  btn.classList.toggle('bg-gray-200');
+  btn.classList.toggle('border-gray-50');
   btn.classList.toggle('border-black');
   const btnInner = btn.querySelector('span')
-  btnInner.classList.toggle('border-gray-500');
+  btnInner.classList.toggle('border-gray-50');
   btnInner.classList.toggle('border-black');
   if (rename) {
     btnInner.innerHTML = rename;
