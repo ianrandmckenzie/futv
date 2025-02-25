@@ -3,7 +3,8 @@ let fileSystemState = {
     "C://": {
       "Documents": { id: 'Documents', name: 'Documents', type: 'folder', fullPath: 'C://Documents', contents: {}},
       "Desktop": { id: 'Desktop', name: 'Desktop', type: 'folder', fullPath: 'C://Desktop', contents: {
-          "futv-1": { id: 'futv-1', name: 'FUTV Channel Stream.exe', type: 'file', fullPath: 'C://Desktop/futv-1', content_type: 'html', contents: '<iframe width="560" height="315" style="margin:0 auto;" src="https://www.youtube.com/embed/WaDScZTJUTs?autoplay=true" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>' }
+          "tubestream": { id: 'tubestream', name: 'FUTV Channel Stream.exe', type: 'app', fullPath: 'C://Desktop/tubestream', content_type: 'html', contents: '', icon: './image/video.svg' },
+          "mailbox": { id: 'mailbox', name: 'FUTV Mail.exe', type: 'app', fullPath: 'C://Desktop/mailbox', content_type: 'html', contents: '', icon: './image/ballotbox.svg' }
         }
       }
     },

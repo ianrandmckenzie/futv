@@ -5,8 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FUTV</title>
   <!-- <script src="./cache.tailwind.js"></script> -->
-   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="./tailwind.config.js"></script>
+  <link rel="icon" type="image/png" href="/image/favicons/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/image/favicons/favicon.svg" />
+  <link rel="shortcut icon" href="/image/favicons/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/image/favicons/apple-touch-icon.png" />
+  <link rel="manifest" href="/image/favicons/site.webmanifest" />
   <style>
     *:focus { outline: none; }
     /* .containerbox::before {
@@ -41,7 +46,7 @@
   <!-- Taskbar -->
   <div class="fixed bottom-0 left-0 right-0 bg-gray-300 border-t border-gray-500 h-12 flex items-center px-2" style="z-index:1000;">
     <div class="relative">
-      <button id="start-button" class="bg-gray-100 border-t-2 border-l-2 border-gray-200 mr-2" onclick="toggleStartMenu()"><span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">Start</span></button>
+      <button id="start-button" class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2" onclick="toggleStartMenu()"><span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">Start</span></button>
       <!-- Start Menu -->
       <div id="start-menu" class="absolute bottom-[2.75rem] -left-2 bg-gray-100 border border-gray-500 w-72 hidden">
         <ul>
@@ -87,6 +92,9 @@
   <script src="js/apps/file_explorer/drag_and_drop.js"></script>
   <script src="js/apps/file_explorer/main.js"></script>
   <script src="js/apps/md_editor.js"></script>
+  <script src="js/apps/mailbox.js"></script>
+  <script src="js/apps/tube_stream.js"></script>
+  <script src="js/apps/main.js"></script>
   <script src="js/gui/desktop.js"></script>
   <script src="js/gui/main.js"></script>
   <script src="js/gui/taskbar.js"></script>

@@ -4,6 +4,8 @@
       "id": "123",
       "email": "someone@example.com",
       "textarea": "A long-form text submission",
+      "subject": "",
+      "public": false,
       "files": {
         "file-111": {
           "id": "file-111",

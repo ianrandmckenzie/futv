@@ -9,6 +9,9 @@ function createWindow(title, content, isNav = false, windowId = null, initialMin
   if (windowType === 'Explorer') {
     contentToPrint = content || getExplorerWindowContent();
   }
+  if (windowType === 'App') {
+    contentToPrint = content;
+  }
   let styleDimensions = "";
   if (dimensions.type === 'integer') {
     styleDimensions = `width: ${dimensions.width}px; height: ${dimensions.height}px; max-width:100%; max-height:100%;`;

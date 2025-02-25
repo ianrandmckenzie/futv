@@ -47,14 +47,18 @@ function renderDesktopIcons() {
     const iconElem = document.createElement('div');
     iconElem.id = "icon-" + item.id;
     iconElem.className = 'flex flex-col items-center cursor-pointer draggable-icon desktop-folder-icon';
-    const iconSrc = (item.type === 'folder') ? 'image/folder.svg' : 'image/file.svg';
-    iconElem.innerHTML = `<img src="${iconSrc}" alt="${item.name}" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16 desktop-folder-icon" />
-      <span class="text-xs text-black max-w-20 text-center desktop-folder-icon">${item.name}</span>`;
+    let iconSrc = (item.type === 'folder') ? 'image/folder.svg' : 'image/file.svg';
     if (item.type === 'file' || item.type === 'ugc-file') {
       iconElem.setAttribute('ondblclick', `openFile('${item.id}', event);event.stopPropagation()`);
+    }
+    else if (item.type === 'app') {
+      iconElem.setAttribute('ondblclick', `openApp('${item.id}')`);
+      iconSrc = item.icon;
     } else if (item.type === 'folder') {
       iconElem.setAttribute('ondblclick', `openExplorer('${item.id}')`);
     }
+    iconElem.innerHTML = `<img src="${iconSrc}" alt="${item.name}" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16 desktop-folder-icon" />
+      <span class="text-xs text-black max-w-20 text-center desktop-folder-icon">${item.name}</span>`;
     desktopIconsContainer.appendChild(iconElem);
     makeIconDraggable(iconElem);
   });
@@ -89,7 +93,7 @@ function getSettingsContent() {
         <label class="block text-sm">Show Seconds on Clock:</label>
         <input id="clockSecondsInput" type="checkbox" ${desktopSettings.clockSeconds ? "checked" : ""} />
       </div>
-      <button id="settings-apply-button" onclick="setTimeout(function(){toggleButtonActiveState('settings-apply-button', 'Apply')}, 1000);toggleButtonActiveState('settings-apply-button', 'Applied!');updateDesktopSettings();createWindow('Settings Applied', 'Your settings have successfully been saved!', false, 'settings-saved', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-100 border-t-2 border-l-2 border-gray-50 mr-2"><span class="px-3 py-1 border-b-2 border-r-2 border-black">Apply</span></button>
+      <button id="settings-apply-button" onclick="setTimeout(function(){toggleButtonActiveState('settings-apply-button', 'Apply')}, 1000);toggleButtonActiveState('settings-apply-button', 'Applied!');updateDesktopSettings();createWindow('Settings Applied', 'Your settings have successfully been saved!', false, 'settings-saved', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2"><span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">Apply</span></button>
     </div>
   `;
 }
