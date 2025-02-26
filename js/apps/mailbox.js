@@ -17,7 +17,7 @@ function launchMailbox() {
       </div>
     </div>
   `;
-  createWindow('Mailbox', content, false, 'Mailbox', false, false, { type: 'integer', width: 600, height: 400 }, 'App', null, 'white');
+  createWindow('Mailbox', content, false, 'mailbox', false, false, { type: 'integer', width: 600, height: 400 }, 'App', null, 'white');
 
   // Helper: Fetch messages from the API and populate the left column
   function loadMessages() {

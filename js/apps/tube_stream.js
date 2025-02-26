@@ -1,7 +1,7 @@
 async function launchTubeStream() {
   const youtube_url = await loadPrimaryStream(); // Await the async function
   const content = `<iframe width="560" height="315" style="margin:0 auto;" src="${youtube_url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
-  createWindow('TubeStream', content, false, 'TubeStream', false, false, { type: 'integer', width: 580, height: 380 }, 'default', null, 'white');
+  createWindow('TubeStream', content, false, 'tubestream', false, false, { type: 'integer', width: 580, height: 380 }, 'default', null, 'white');
 }
 
 async function loadPrimaryStream() {

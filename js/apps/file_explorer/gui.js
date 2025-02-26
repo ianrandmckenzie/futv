@@ -121,6 +121,15 @@ function getExplorerWindowContent(currentPath = 'C://') {
 
 // Looks up a file by its ID (from desktop or current folder) and opens it.
 function openFile(incoming_file, e) {
+  const existingWindow = document.getElementById(incoming_file);
+  const elementsWithZIndex = [...document.querySelectorAll('*')].filter(el => (getComputedStyle(el).zIndex > 100 && getComputedStyle(el).zIndex < 1000));
+  const highestZIndex = elementsWithZIndex.reduce((maxEl, el) =>
+    getComputedStyle(el).zIndex > getComputedStyle(maxEl).zIndex ? el : maxEl
+  );
+  if (existingWindow) {
+    existingWindow.style.zIndex = `${parseInt(highestZIndex.style.zIndex) + 1}`;
+    return;
+  }
   let file;
   const explorerElem = e.target.closest('.file-explorer-window');
   let currentPath;
