@@ -260,3 +260,25 @@ function toggleFullScreen(winId) {
 function openWindow(id, content = '', dimensions = { type: 'default' }, windowType = 'default', parentWin = null) {
   return createWindow(id, content === '' ? 'Content for ' + id : content, false, null, false, false, dimensions, windowType, parentWin);
 }
+
+function showDialogBox(message, dialogType) {
+  const uniqueWindowId = 'dialogWindow-' + Date.now();
+  const dialogElement = `
+    <h2 class="text-3xl">${message}</h2>
+    <button id="${uniqueWindowId}-button" onclick="setTimeout(function(){toggleButtonActiveState('${uniqueWindowId}-button', 'OK')}, 1000);toggleButtonActiveState('${uniqueWindowId}-button', 'Cool!');" 
+      class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2">
+      <span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">OK</span>
+    </button>
+  `;
+
+  const title = '⚠️ Information';
+  if (dialogType === 'confirmation') {
+    title = '✅ Success';
+  }
+  if (dialogType === 'error') {
+    title = '⚠️ Error';
+    document.getElementById('error-popup-audio').play();
+  }
+  createWindow(title, dialogElement, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
+  return;
+}

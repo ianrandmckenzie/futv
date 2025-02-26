@@ -47,15 +47,7 @@ function editItemName(e, menuItem) {
   const targetElem = document.querySelector('.right-click-target');
   targetElem.classList.remove('right-click-target');
   if (!targetElem) {
-    const errorMessage = `
-      <h2 class="text-3xl">No item selected.</h2>
-      <button id="noitemselected-button" onclick="setTimeout(function(){toggleButtonActiveState('noitemselected-button', 'OK')}, 1000);toggleButtonActiveState('noitemselected-button', 'Cool!');" 
-        class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2">
-        <span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">OK</span>
-      </button>
-    `;
-    document.getElementById('error-popup-audio').play();
-    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
+    showDialogBox('No item selected.', 'error');
     return;
   }
   console.log(targetElem)
@@ -70,15 +62,7 @@ function editItemName(e, menuItem) {
   let item = folderContents[itemId];
   console.log('item: ', item);
   if (!item) {
-    const errorMessage = `
-      <h2 class="text-3xl">Item not found in file system.</h2>
-      <button id="error-button" onclick="setTimeout(function(){toggleButtonActiveState('error-button', 'OK')}, 1000);toggleButtonActiveState('error-button', 'Cool!');" 
-        class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2">
-        <span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">OK</span>
-      </button>
-    `;
-    document.getElementById('error-popup-audio').play();
-    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
+    showDialogBox('Item not found in file system.', 'error');
     return;
   }
 
@@ -157,9 +141,7 @@ function deleteItem(e, menuItem) {
   const targetElem = document.querySelector('.right-click-target');
   targetElem.classList.remove('right-click-target');
   if (!targetElem) {
-    const errorMessage = `<h2 class="text-3xl">No file selected.</h2><button id="error-button" onclick="setTimeout(function(){toggleButtonActiveState('error-button', 'OK')}, 1000);toggleButtonActiveState('error-button', 'Cool!');" class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2"><span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">OK</span></button>`;
-    document.getElementById('error-popup-audio').play();
-    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
+    showDialogBox('No file selected.', 'error');
     return;
   }
   let fileId = targetElem.getAttribute('data-item-id');
@@ -174,9 +156,7 @@ function deleteItem(e, menuItem) {
     folderContents = findFolderObjectByFullPath(contextPath, fs);
   }
   if (!(fileId in folderContents)) {
-    const errorMessage = `<h2 class="text-3xl">Item not found.</h2><button id="noitemselected-button" onclick="setTimeout(function(){toggleButtonActiveState('noitemselected-button', 'OK')}, 1000);toggleButtonActiveState('noitemselected-button', 'Cool!');" class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2"><span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">OK</span></button>`;
-    document.getElementById('error-popup-audio').play();
-    createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
+    showDialogBox('Item not found.', 'error');
     return;
   }
   if (!confirm("Are you sure you want to delete this file?")) {

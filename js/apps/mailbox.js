@@ -130,7 +130,7 @@ function launchMailbox() {
       const formData = new FormData(composeForm);
       // Ensure that an attachment is provided (input is required, but double-check)
       if (!formData.get('attachment') || !formData.get('attachment').name) {
-        alert("Please attach at least one file.");
+        showDialogBox('Please attach at least one file.', 'error');
         return;
       }
       // Submit the form data via POST to the submissions endpoint
@@ -140,19 +140,19 @@ function launchMailbox() {
       })
       .then(response => {
         if (response.ok) {
-          alert("Message sent successfully!");
+          showDialogBox("Message sent successfully!", 'success');
           loadMessages(); // Refresh the mailbox list
           // Close the compose window if a close function is available
           if (typeof closeCurrentWindow === 'function') {
             closeCurrentWindow();
           }
         } else {
-          alert("Error sending message.");
+          showDialogBox("Error sending message.", 'error');
         }
       })
       .catch(err => {
         console.error(err);
-        alert("Error sending message.");
+        showDialogBox("Error sending message.", 'error');
       });
     });
     // Handle cancellation of compose
