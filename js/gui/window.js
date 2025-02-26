@@ -271,7 +271,7 @@ function showDialogBox(message, dialogType) {
     </button>
   `;
 
-  const title = '⚠️ Information';
+  let title = '⚠️ Information';
   if (dialogType === 'confirmation') {
     title = '✅ Success';
   }

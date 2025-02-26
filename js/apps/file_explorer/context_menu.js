@@ -50,17 +50,13 @@ function editItemName(e, menuItem) {
     showDialogBox('No item selected.', 'error');
     return;
   }
-  console.log(targetElem)
   const itemId = targetElem.getAttribute('data-item-id');
   const explorerElem = targetElem.closest('.file-explorer-window');
   const contextPath = explorerElem.getAttribute('data-current-path');
   let fs = getFileSystemState();
   // Get parent's contents as an object keyed by item IDs.
   let folderContents = findFolderObjectByFullPath(contextPath, fs).contents;
-  console.log('contextPath: ', contextPath);
-  console.log('folderContents: ', folderContents);
   let item = folderContents[itemId];
-  console.log('item: ', item);
   if (!item) {
     showDialogBox('Item not found in file system.', 'error');
     return;
@@ -177,6 +173,7 @@ function createNewFolder(e, fromFullPath) {
   e.stopPropagation();
   hideContextMenu();
   const parentPath = fromFullPath || 'C://';
+  const windowId = 'window-' + Date.now();
 
   // Build a dialog window for entering the new folder name
   const folderDialogContent = `
@@ -198,7 +195,7 @@ function createNewFolder(e, fromFullPath) {
     </div>
   `;
 
-  createWindow("New Folder", folderDialogContent, false, "new-folder", false, false, { type: 'integer', width: 300, height: 150 }, "Default");
+  createWindow("New Folder", folderDialogContent, false, windowId, false, false, { type: 'integer', width: 300, height: 150 }, "Default");
 
   const form = document.getElementById('create-folder-form');
   form.addEventListener('submit', function(ev) {
@@ -329,7 +326,6 @@ function createNewFile(e, fromFullPath) {
     }
     if (typeof destination === 'undefined') destination = destination[drive];
     if (typeof destination !== 'undefined' && typeof destination[drive] === 'object') destination = destination[drive];
-    console.log(destination)
 
     // Insert the new file into the parent's contents.
     destination[newFile.id] = newFile;
