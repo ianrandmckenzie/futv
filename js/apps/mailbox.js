@@ -115,8 +115,8 @@ function launchMailbox() {
             <input type="file" name="attachment" required class="mt-1 block w-full" />
           </div>
           <div class="flex justify-end space-x-2">
-            <button type="button" id="cancel-compose" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">Send</button>
+            <button type="button" id="cancel-compose" onclick="closeWindow('Compose Message'); event.stopPropagation();" class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2"><span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">Cancel</span></button>
+            <button type="submit" class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2"><span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">Send</span></button>
           </div>
         </form>
       </div>

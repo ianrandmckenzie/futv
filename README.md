@@ -61,7 +61,7 @@ media
 ```
 
 ## Buttons
-Here's a template. Figure it out.
+This is how buttons should be implemented.
 ```html
 <button id="some-example-button" onclick="setTimeout(function(){toggleButtonActiveState('some-example-button', 'OK')}, 1000);toggleButtonActiveState('some-example-button', 'Cool!');createWindow('OK Button Pressed', 'Your OK button has successfully been pressed!', false, 'ok-pressed', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2"><span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">OK</span></button>
 ```

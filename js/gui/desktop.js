@@ -53,6 +53,7 @@ function renderDesktopIcons() {
     }
     else if (item.type === 'app') {
       iconElem.setAttribute('ondblclick', `openApp('${item.id}')`);
+      iconElem.setAttribute('data-is-vendor-application', true);
       iconSrc = item.icon;
     } else if (item.type === 'folder') {
       iconElem.setAttribute('ondblclick', `openExplorer('${item.id}')`);

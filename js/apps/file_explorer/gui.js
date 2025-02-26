@@ -134,7 +134,7 @@ function openFile(incoming_file, e) {
 
   if (!file || typeof file === 'string') {
     const file_name = `File ${typeof file === 'string' ? `"${file}"` : ''}`;
-    const errorMessage = `<h2 class="text-3xl">${file_name}not found.</h2><button id="filenotfound-button" onclick="setTimeout(function(){toggleButtonActiveState('filenotfound-button', 'OK')}, 1000);toggleButtonActiveState('filenotfound-button', 'Cool!');createWindow('OK Button Pressed', 'Your OK button has successfully been pressed!', false, 'ok-pressed', false, false, { type: 'integer', height: 300, width: 200 }, 'default');" class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2"><span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">OK</span></button>`;
+    const errorMessage = `<h2 class="text-3xl">${file_name}not found.</h2><button id="filenotfound-button" onclick="setTimeout(function(){toggleButtonActiveState('filenotfound-button', 'OK')}, 1000);toggleButtonActiveState('filenotfound-button', 'Cool!');" class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2"><span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">OK</span></button>`;
     document.getElementById('error-popup-audio').play();
     createWindow("⚠️ Error", errorMessage, false, null, false, false, { type: 'integer', width: 300, height: 100 }, "Default");
     return;
