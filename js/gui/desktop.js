@@ -46,7 +46,7 @@ function renderDesktopIcons() {
   Object.values(desktopFolder.contents).forEach(item => {
     const iconElem = document.createElement('div');
     iconElem.id = "icon-" + item.id;
-    iconElem.className = 'flex flex-col items-center cursor-pointer draggable-icon desktop-folder-icon';
+    iconElem.className = 'flex flex-col items-center cursor-pointer m-2 draggable-icon desktop-folder-icon';
     let iconSrc = (item.type === 'folder') ? 'image/folder.svg' : 'image/file.svg';
     if (item.type === 'file' || item.type === 'ugc-file') {
       iconElem.setAttribute('ondblclick', `openFile('${item.id}', event);event.stopPropagation()`);

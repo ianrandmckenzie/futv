@@ -13,8 +13,10 @@ function toggleButtonActiveState(id, rename = null) {
   btnInner.classList.toggle('border-gray-300');
   btnInner.classList.toggle('border-black');
   const btnImg = btn.querySelector('img');
-  btnImg.classList.toggle('border-gray-300');
-  btnImg.classList.toggle('border-black');
+  if (btnImg) {
+    btnImg.classList.toggle('border-gray-300');
+    btnImg.classList.toggle('border-black');
+  }
   if (rename) {
     btnInner.innerHTML = rename;
   }
