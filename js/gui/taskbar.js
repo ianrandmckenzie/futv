@@ -4,25 +4,6 @@ function toggleStartMenu() {
   toggleButtonActiveState('start-button');
 }
 
-function toggleButtonActiveState(id, rename = null) {
-  let btn;
-  if (typeof id !== 'string') {
-    btn = id;
-  } else {
-    btn = document.getElementById(id);
-  }
-  btn.classList.toggle('bg-gray-50');
-  btn.classList.toggle('bg-gray-200');
-  btn.classList.toggle('border-gray-300');
-  btn.classList.toggle('border-black');
-  const btnInner = btn.querySelector('span')
-  btnInner.classList.toggle('border-gray-300');
-  btnInner.classList.toggle('border-black');
-  if (rename) {
-    btnInner.innerHTML = rename;
-  }
-}
-
 function minimizeAllWindows() {
   for (const id in windowStates) {
     minimizeWindow(id);
