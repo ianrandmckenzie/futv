@@ -34,7 +34,7 @@ window.addEventListener('click', function (e) {
 });
 
 window.addEventListener('load', function () {
-  if (!localStorage.getItem("splashSeen")) {
+  if (!localStorage.getItem("splashScreen")) {
     showSplash();
   }
   initializeAppState();

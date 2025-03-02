@@ -33,7 +33,7 @@ function showSplash() {
     splashAudio.currentTime = 0;
     setTimeout(function () {
       splashDiv.remove();
-      localStorage.setItem("splashSeen", "true");
+      localStorage.setItem("splashScreen", "true");
     }, 3000);
   });
 
@@ -43,7 +43,7 @@ function showSplash() {
     splashAudio.currentTime = 0;
     setTimeout(function () {
       splashDiv.remove();
-      localStorage.setItem("splashSeen", "true");
+      localStorage.setItem("splashScreen", "true");
     }, 3000);
   });
 }
