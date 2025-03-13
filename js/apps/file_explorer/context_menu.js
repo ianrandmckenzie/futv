@@ -8,6 +8,7 @@ document.addEventListener('contextmenu', function (e) {
   // For right-click on blank space, determine current folder from the explorer.
   let explorerElem = document.querySelector('.file-explorer-window');
   let fromFullPath = explorerElem ? explorerElem.getAttribute('data-current-path') : 'C://';
+  if (e.target.id == 'windows-container') fromFullPath = 'C://Desktop'; // Switch path to Desktop if Desktop is r-clicked
   showContextMenu(e, target, fromFullPath);
 });
 
@@ -22,13 +23,15 @@ function showContextMenu(e, target, fromFullPath) {
   if (target) {
     target.classList.add('right-click-target');
     const isVendor = target.getAttribute('data-is-vendor-application') === 'true';
-    html += `<div class="px-4 py-2 ${isVendor ? 'text-gray-400' : 'hover:bg-gray-50 cursor-pointer'}" ${ isVendor ? '': 'onclick="editItemName(event, this)"'}>Edit Name</div>`;
-    html += `<div class="px-4 py-2 ${isVendor ? 'text-gray-400' : 'hover:bg-gray-50 cursor-pointer'}" ${ isVendor ? '': 'onclick="deleteItem(event, this)"'}>Delete</div>`;
+    html += `<div class="px-4 py-2 ${isVendor ? 'text-gray-400' : 'hover:bg-gray-50 cursor-pointer'}" ${ isVendor ? '' : 'onclick="editItemName(event, this)"'}>Edit Name</div>`;
+    html += `<div class="px-4 py-2 ${isVendor ? 'text-gray-400' : 'hover:bg-gray-50 cursor-pointer'}" ${ isVendor ? '' : 'onclick="deleteItem(event, this)"'}>Delete</div>`;
     html += `<div class="px-4 py-2 text-gray-400">New Folder</div>`;
     html += `<div class="px-4 py-2 text-gray-400">New File</div>`;
+    html += `<div class="px-4 py-2 text-gray-400">New Shortcut</div>`;
   } else {
     html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="createNewFolder(event, '${fromFullPath}')">New Folder</div>`;
     html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="createNewFile(event, '${fromFullPath}')">New File</div>`;
+    html += `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="createNewShortcut(event, '${fromFullPath}')">New Shortcut</div>`;
   }
   menu.innerHTML = html;
   menu.style.top = e.clientY + 'px';
@@ -52,15 +55,34 @@ function editItemName(e, menuItem) {
   }
   const itemId = targetElem.getAttribute('data-item-id');
   const explorerElem = targetElem.closest('.file-explorer-window');
-  const contextPath = explorerElem.getAttribute('data-current-path');
+  let contextPath;
+  if (explorerElem) {
+    contextPath = explorerElem.getAttribute('data-current-path');
+  } else {
+    contextPath = targetElem.getAttribute('data-current-path')
+  }
+
   let fs = getFileSystemState();
-  // Get parent's contents as an object keyed by item IDs.
-  let folderContents = findFolderObjectByFullPath(contextPath, fs).contents;
+  let folderContents = {};
+  let fileId = targetElem.getAttribute('data-item-id');
+  const isDrive = contextPath.length === 4;
+  if (isDrive) {
+    folderContents = fs.folders[contextPath];
+  } else if (contextPath == 'C://Desktop') {
+    folderContents = findFolderObjectByFullPath(contextPath, fs).contents;
+  } else {
+    folderContents = findFolderObjectByFullPath(contextPath, fs);
+  }
+  if (!(fileId in folderContents)) {
+    showDialogBox('Item not found.', 'error');
+    return;
+  }
   let item = folderContents[itemId];
   if (!item) {
     showDialogBox('Item not found in file system.', 'error');
     return;
   }
+  const windowId = 'window-' + Date.now();
 
   const editContent = `
     <div class="p-4">
@@ -80,7 +102,7 @@ function editItemName(e, menuItem) {
       </form>
     </div>
   `;
-  createWindow("Edit Item Name", editContent, false, "edit-item-name", false, false, { type: 'integer', width: 300, height: 150 }, "Default");
+  createWindow("Edit Item Name", editContent, false, windowId, false, false, { type: 'integer', width: 300, height: 150 }, "Default");
 
   // Attach event listeners once the window is rendered.
   const editForm = document.getElementById('edit-name-form');
@@ -105,18 +127,17 @@ function editItemName(e, menuItem) {
         }
       }
       item.name = newName;
-      if (contextPath === "C://Desktop") {
-        renderDesktopIcons();
-      } else {
+      if (!(contextPath === "C://Desktop")) {
         const explorerWindow = document.getElementById('explorer-window');
         if (explorerWindow) {
           explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(contextPath);
-          setupFolderDrop();
         }
       }
+      setupFolderDrop();
       setFileSystemState(fs);
       saveState();
       refreshExplorerViews();
+      if (contextPath === "C://Desktop") renderDesktopIcons();
     }
     if (typeof closeCurrentWindow === 'function') {
       closeCurrentWindow();
@@ -131,7 +152,7 @@ function editItemName(e, menuItem) {
   });
 }
 
-function deleteItem(e, menuItem) {
+function deleteItem(e) {
   e.stopPropagation();
   hideContextMenu();
   const targetElem = document.querySelector('.right-click-target');
@@ -142,12 +163,19 @@ function deleteItem(e, menuItem) {
   }
   let fileId = targetElem.getAttribute('data-item-id');
   const explorerElem = targetElem.closest('.file-explorer-window');
-  const contextPath = explorerElem.getAttribute('data-current-path');
+  let contextPath;
+  if (explorerElem) {
+    contextPath = explorerElem.getAttribute('data-current-path');
+  } else {
+    contextPath = targetElem.getAttribute('data-current-path')
+  }
   let fs = getFileSystemState();
   let folderContents = {};
   const isDrive = contextPath.length === 4;
   if (isDrive) {
     folderContents = fs.folders[contextPath];
+  } else if (contextPath == 'C://Desktop') {
+    folderContents = findFolderObjectByFullPath(contextPath, fs).contents;
   } else {
     folderContents = findFolderObjectByFullPath(contextPath, fs);
   }
@@ -167,6 +195,7 @@ function deleteItem(e, menuItem) {
   setFileSystemState(fs);
   saveState();
   refreshExplorerViews();
+  renderDesktopIcons();
 }
 
 function createNewFolder(e, fromFullPath) {
@@ -248,6 +277,7 @@ function createNewFolder(e, fromFullPath) {
     setFileSystemState(fs);
     saveState();
     refreshExplorerViews();
+    if (fromFullPath == 'C://Desktop') renderDesktopIcons();
 
     if (typeof closeCurrentWindow === 'function') {
       closeCurrentWindow();
@@ -339,6 +369,7 @@ function createNewFile(e, fromFullPath) {
     setFileSystemState(fs);
     saveState();
     refreshExplorerViews();
+    if (fromFullPath == 'C://Desktop') renderDesktopIcons();
 
     if (typeof closeCurrentWindow === 'function') {
       closeCurrentWindow();
@@ -347,6 +378,113 @@ function createNewFile(e, fromFullPath) {
 
   const cancelFileBtn = document.getElementById('cancel-file-button');
   cancelFileBtn.addEventListener('click', function() {
+    if (typeof closeCurrentWindow === 'function') {
+      closeCurrentWindow();
+    }
+  });
+}
+
+function createNewShortcut(e, fromFullPath) {
+  e.stopPropagation();
+  hideContextMenu();
+  const parentPath = fromFullPath || 'C://';
+  const windowId = 'window-' + Date.now();
+
+  const shortcutDialogContent = `
+    <div class="p-4">
+      <form id="create-shortcut-form" class="flex flex-col space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Shortcut Name</label>
+          <input type="text" name="shortcutName" placeholder="Example Website" class="mt-1 block w-full border border-gray-300 rounded p-2" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Shortcut URL</label>
+          <input type="url" name="shortcutURL" placeholder="https://example.com" required class="mt-1 block w-full border border-gray-300 rounded p-2" />
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button type="button" id="cancel-shortcut-button" onclick="setTimeout(function(){closeWindow('${windowId}')},100);toggleButtonActiveState('cancel-shortcut-button', 'Cool!');" class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2">
+            <span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">Cancel</span>
+          </button>
+          <button type="submit" id="submit-shortcut-button" onclick="setTimeout(function(){closeWindow('${windowId}')},100);toggleButtonActiveState('submit-shortcut-button', 'Cool!');" class="bg-gray-200 border-t-2 border-l-2 border-gray-300 mr-2">
+            <span class="border-b-2 border-r-2 border-black block h-full w-full py-1.5 px-3">Submit</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  createWindow("New Shortcut", shortcutDialogContent, false, windowId, false, false, { type: 'integer', width: 300, height: 200 }, "Default");
+
+  const form = document.getElementById('create-shortcut-form');
+  form.addEventListener('submit', function(ev) {
+    ev.preventDefault();
+    const shortcutURL = form.shortcutURL.value.trim();
+    if (!shortcutURL) return; // Optionally, show an error dialog here.
+    const shortcutName = form.shortcutName.value.trim() || shortcutURL.replace(shortcutURL.substring(15), '...');
+    let fs = getFileSystemState();
+    const shortcutId = "shortcut-" + Date.now();
+
+    // Compute favicon URL using Google's favicon API.
+    let faviconURL = "https://www.google.com/s2/favicons?domain=";
+    try {
+      let urlObj = new URL(shortcutURL);
+      faviconURL += urlObj.hostname;
+    } catch (error) {
+      faviconURL = "image/doc.svg"; // Fallback icon.
+    }
+
+    // Create new shortcut item.
+    const newShortcut = {
+      id: shortcutId,
+      name: shortcutName, // You could optionally extract and use the hostname.
+      type: "shortcut", // Custom type to handle double-click differently.
+      url: shortcutURL,
+      icon_url: faviconURL,
+      description: ''
+    };
+
+    // Determine destination by parsing fromFullPath (same logic as createNewFile).
+    const drive = fromFullPath.substring(0, 4);
+    let paths = fromFullPath.substring(4).split('/');
+    paths.unshift(drive);
+    let destination = fs.folders;
+    if (paths[1] !== '') { // Not at drive root.
+      paths.forEach(path => {
+        const destination_parent = destination;
+        destination = destination[path];
+        if (destination && typeof destination.contents !== 'undefined') {
+          if (typeof destination.contents !== 'string') {
+            destination = destination.contents;
+          } else {
+            destination = destination_parent;
+          }
+        }
+      });
+    }
+    if (typeof destination === 'undefined') destination = destination[drive];
+    if (typeof destination !== 'undefined' && typeof destination[drive] === 'object') destination = destination[drive];
+
+    // Insert the new shortcut into parent's contents.
+    destination[newShortcut.id] = newShortcut;
+
+    // Refresh explorer view.
+    const explorerWindow = document.getElementById('explorer-window');
+    if (explorerWindow) {
+      explorerWindow.querySelector('.file-explorer-window').outerHTML = getExplorerWindowContent(parentPath);
+      setupFolderDrop();
+    }
+    setFileSystemState(fs);
+    saveState();
+    refreshExplorerViews();
+    if (fromFullPath == 'C://Desktop') renderDesktopIcons();
+
+    if (typeof closeCurrentWindow === 'function') {
+      closeCurrentWindow();
+    }
+  });
+
+  const cancelBtn = document.getElementById('cancel-shortcut-button');
+  cancelBtn.addEventListener('click', function() {
     if (typeof closeCurrentWindow === 'function') {
       closeCurrentWindow();
     }

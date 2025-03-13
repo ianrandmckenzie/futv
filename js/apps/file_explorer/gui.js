@@ -82,6 +82,10 @@ function getExplorerWindowContent(currentPath = 'C://') {
       listHtml += `<li class="cursor-pointer hover:bg-gray-50 folder-item file-item" data-item-id="${item.id}" ondblclick="openExplorer('${item.id}')">
         <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}
       </li>`;
+    } else if (item.type == 'shortcut') {
+      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" ondblclick="openShortcut(this);" data-url="${item.url}">
+        <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}${item.description ? ' (' + item.description + ')' : ''}
+      </li>`;
     } else {
       listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" ondblclick="openFile('${item.id}', event); event.stopPropagation();">
         <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}${item.description ? ' (' + item.description + ')' : ''}
@@ -280,5 +284,13 @@ function openFile(incoming_file, e) {
         saveState();
       }
     }
+  }
+}
+
+function openShortcut(target) {
+  if (!target) return;
+  const url = target.getAttribute('data-url');
+  if (url) {
+    window.open(url, '_blank');
   }
 }

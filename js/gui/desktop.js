@@ -57,7 +57,12 @@ function renderDesktopIcons() {
       iconSrc = item.icon;
     } else if (item.type === 'folder') {
       iconElem.setAttribute('ondblclick', `openExplorer('${item.id}')`);
+    } else if (item.type == 'shortcut') {
+      iconElem.setAttribute('ondblclick', `openShortcut(this)`);
+      iconElem.setAttribute('data-url', item.url);
     }
+    iconElem.setAttribute('data-item-id', item.id);
+    iconElem.setAttribute('data-current-path', 'C://Desktop');
     iconElem.innerHTML = `<img src="${iconSrc}" alt="${item.name}" class="mb-1 bg-white shadow-lg p-1 max-h-16 max-w-16 desktop-folder-icon" />
       <span class="text-xs text-black max-w-20 text-center desktop-folder-icon">${item.name}</span>`;
     desktopIconsContainer.appendChild(iconElem);
