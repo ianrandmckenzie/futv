@@ -79,15 +79,15 @@ function getExplorerWindowContent(currentPath = 'C://') {
     if (item.icon_url) { icon = item.icon_url; }
     if (isFolder) {
       // For folders, the clickable link calls openExplorer with the folder’s id.
-      listHtml += `<li class="cursor-pointer hover:bg-gray-50 folder-item file-item" data-item-id="${item.id}" ondblclick="openExplorer('${item.id}')">
+      listHtml += `<li class="cursor-pointer hover:bg-gray-50 folder-item file-item" data-item-id="${item.id}" ondblclick="openExplorer('${item.id}')" onmobiledbltap="openExplorer('${item.id}')">
         <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}
       </li>`;
     } else if (item.type == 'shortcut') {
-      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" ondblclick="openShortcut(this);" data-url="${item.url}">
+      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" ondblclick="openShortcut(this);" data-url="${item.url}" onmobiledbltap="openShortcut(this);" data-url="${item.url}">
         <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}${item.description ? ' (' + item.description + ')' : ''}
       </li>`;
     } else {
-      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" ondblclick="openFile('${item.id}', event); event.stopPropagation();">
+      listHtml += `<li class="cursor-pointer hover:bg-gray-50 file-item" data-item-id="${item.id}" ondblclick="openFile('${item.id}', event); event.stopPropagation();" onmobiledbltap="openFile('${item.id}', event); event.stopPropagation();">
         <img src="${icon}" class="inline h-4 w-4 mr-2"> ${item.name}${item.description ? ' (' + item.description + ')' : ''}
       </li>`;
     }

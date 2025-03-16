@@ -50,15 +50,19 @@ function renderDesktopIcons() {
     let iconSrc = (item.type === 'folder') ? 'image/folder.svg' : 'image/file.svg';
     if (item.type === 'file' || item.type === 'ugc-file') {
       iconElem.setAttribute('ondblclick', `openFile('${item.id}', event);event.stopPropagation()`);
+      iconElem.setAttribute('onmobiledbltap', `openFile('${item.id}', event);event.stopPropagation()`);
     }
     else if (item.type === 'app') {
       iconElem.setAttribute('ondblclick', `openApp('${item.id}')`);
+      iconElem.setAttribute('onmobiledbltap', `openApp('${item.id}')`);
       iconElem.setAttribute('data-is-vendor-application', true);
       iconSrc = item.icon;
     } else if (item.type === 'folder') {
       iconElem.setAttribute('ondblclick', `openExplorer('${item.id}')`);
+      iconElem.setAttribute('onmobiledbltap', `openExplorer('${item.id}')`);
     } else if (item.type == 'shortcut') {
       iconElem.setAttribute('ondblclick', `openShortcut(this)`);
+      iconElem.setAttribute('onmobiledbltap', `openShortcut(this)`);
       iconElem.setAttribute('data-url', item.url);
     }
     iconElem.setAttribute('data-item-id', item.id);
@@ -105,3 +109,39 @@ function getSettingsContent() {
 }
 
 renderDesktopIcons();
+
+
+// Function to detect double tap on mobile
+function detectDoubleTap(element) {
+  let lastTouchTime = 0;
+
+  element.addEventListener("pointerdown", function (event) {
+    let currentTime = new Date().getTime();
+    let timeDiff = currentTime - lastTouchTime;
+
+    if (timeDiff < 300 && timeDiff > 0) {
+      // Dispatch a custom "mobiledbltap" event
+      let customEvent = new Event("mobiledbltap");
+      element.dispatchEvent(customEvent);
+    }
+
+    lastTouchTime = currentTime;
+  });
+}
+
+// Add support for the custom "mobiledbltap" event on all elements
+document.querySelectorAll("[onmobiledbltap]").forEach(element => {
+  detectDoubleTap(element);
+
+  // Attach the inline attribute function dynamically
+  element.addEventListener("mobiledbltap", function () {
+    let funcCall = element.getAttribute("onmobiledbltap");
+      if (funcCall) {
+        try {
+          new Function(funcCall)();
+        } catch (error) {
+          console.error(`Error executing: ${funcCall}`, error);
+        }
+      }
+  });
+});

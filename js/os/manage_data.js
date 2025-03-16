@@ -5,7 +5,8 @@ let fileSystemState = {
       "Desktop": { id: 'Desktop', name: 'Desktop', type: 'folder', fullPath: 'C://Desktop', contents: {
           "tubestream": { id: 'tubestream', name: 'FUTV Channel Stream.exe', type: 'app', fullPath: 'C://Desktop/tubestream', content_type: 'html', contents: '', icon: './image/video.svg' },
           "mailbox": { id: 'mailbox', name: 'FUTV Mail.exe', type: 'app', fullPath: 'C://Desktop/mailbox', content_type: 'html', contents: '', icon: './image/ballotbox.svg' },
-          "FAQs": { id: 'FAQs', name: 'Frequently asked questions.rtf', type: 'ugc-file', fullPath: 'C://Desktop/FAQs', content_type: 'md', contents: '' }
+          "FAQs": { id: 'FAQs', name: 'Frequently asked questions.rtf', type: 'ugc-file', fullPath: 'C://Desktop/FAQs', content_type: 'md', contents: '' },
+          "Watercolour": { id: 'watercolour', name: 'Watercolour.exe', type: 'app', fullPath: 'C://Desktop/Watercolour', content_type: 'html', contents: '', icon: './image/palette.svg' }
         }
       }
     },
