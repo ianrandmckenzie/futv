@@ -1,3 +1,12 @@
+const version = '1.0';
+let oldVersion = localStorage.getItem('version');
+if (!oldVersion) localStorage.setItem('version', version);
+if (oldVersion !== version) {
+  localStorage.removeItem('appState');
+  localStorage.removeItem('splashScreen');
+  localStorage.removeItem('version');
+  localStorage.setItem('version', version);
+}
 let highestZ = 100;
 let activeMediaWindow = null; // ID of the active window with media
 // Global state for windows (keyed by window id)

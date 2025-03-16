@@ -206,7 +206,6 @@
         btn.classList.add('bg-gray-100');
 
         currentTool = btn.getAttribute('data-tool');
-        console.log(currentTool)
         // Set canvas cursor with hotspot at 12,12 (assuming 24x24 icon)
         canvas.style.cursor = `url("./icons/resized_${currentTool}.png"), auto`;
       });
@@ -413,7 +412,6 @@
 
     // Commit current canvas state: push onto undo stack and clear redo stack.
     function commitState() {
-      console.log('commitState')
       const state = canvas.toDataURL();
       undoStack.push(state);
       // Also update savedImage if other parts use it.
