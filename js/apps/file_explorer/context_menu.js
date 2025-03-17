@@ -425,7 +425,7 @@ function createNewShortcut(e, fromFullPath) {
     const shortcutId = "shortcut-" + Date.now();
 
     // Compute favicon URL using Google's favicon API.
-    let faviconURL = "https://www.google.com/s2/favicons?domain=";
+    let faviconURL = "https://www.google.com/s2/favicons?sz=64&domain=";
     try {
       let urlObj = new URL(shortcutURL);
       faviconURL += urlObj.hostname;
