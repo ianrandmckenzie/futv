@@ -2,7 +2,7 @@ export function showSplash() {
   const splashDiv = document.createElement('div');
   splashDiv.className = 'w-3xl fixed left-0 top-0 h-full w-full bg-gradient-to-b from-40% from-blue-500 to-cyan-500';
   splashDiv.id = "splash-screen";
-  splashDiv.style.zIndex = "9000";
+  splashDiv.style.zIndex = "10005";
 
   splashDiv.innerHTML = `
   <div class="flex flex-col items-center justify-center h-full">
@@ -43,7 +43,7 @@ export async function showOSLoading() {
   const splashDiv = document.createElement('div');
   splashDiv.className = 'w-3xl fixed left-0 top-0 h-full w-full bg-gradient-to-b from-blue-500 to-cyan-500';
   splashDiv.id = "splash-screen";
-  splashDiv.style.zIndex = "9999";
+  splashDiv.style.zIndex = "10005";
 
   splashDiv.innerHTML = `
   <div class="flex flex-col items-center justify-center h-full">
