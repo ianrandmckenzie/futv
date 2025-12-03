@@ -375,7 +375,7 @@ export function initializeMailboxUI(win) {
     const toInput = document.createElement('input');
     toInput.type  = 'text';
     toInput.name  = 'to';
-    toInput.value = 'Nostalgia OS Team';
+    toInput.value = 'FUTV Team';
     toInput.readOnly = true;
     toInput.id = 'to-email';
     toInput.setAttribute('aria-label', 'Recipient');
